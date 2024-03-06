@@ -124,9 +124,9 @@ socket.on("message", function (message, remote) {
   );
   try {
     var receivedJson = JSON.parse(message.toString());
-    console.log(receivedJson.count);
+    //console.log(receivedJson.count);
     // expected output: 42
-    console.log(receivedJson.result);
+   // console.log(receivedJson.result);
     // expected output: true
     if (receivedJson.goal === 1) {
       events.emit("socket-data", receivedJson);

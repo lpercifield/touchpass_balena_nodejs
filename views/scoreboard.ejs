@@ -1,162 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Soccer Scoreboard</title>
     <style>
-        body {
-            font-family: 'Courier New', monospace;
-            /* Monospaced font */
-            background-color: #3498db;
-            /* Blue background */
-            color: #e74c3c;
-            /* Red text */
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
+      body {
+        font-family: "Courier New", monospace;
+        /* Monospaced font */
+        background-color: #3498db;
+        /* Blue background */
+        color: #e74c3c;
+        /* Red text */
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+      }
 
-        .scoreboard {
-            background-color: #2980b9;
-            /* Slightly darker blue for the scoreboard */
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: auto;
-            max-width: 400px;
-        }
+      .scoreboard {
+        background-color: #2980b9;
+        /* Slightly darker blue for the scoreboard */
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: auto;
+        max-width: 600px;
+      }
 
-        .team {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            letter-spacing: 4px;
-            /* Add some letter spacing for LED-like appearance */
-        }
+      .team {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        letter-spacing: 4px;
+        /* Add some letter spacing for LED-like appearance */
+      }
 
-        .score {
-            font-size: 36px;
-            margin-bottom: 20px;
-            letter-spacing: 6px;
-            /* Add some letter spacing for LED-like appearance */
-        }
+      .score {
+        font-size: 160px;
+        margin-bottom: 20px;
+        letter-spacing: 6px;
+        /* Add some letter spacing for LED-like appearance */
+      }
 
-        .timer {
-            font-size: 120px;
-            /* 5 times larger timer */
-            margin-bottom: 20px;
-            letter-spacing: 10px;
-            /* Add some letter spacing for LED-like appearance */
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
-            /* Add a red glow effect */
-        }
+      .timer {
+        font-size: 160px;
+        /* 5 times larger timer */
+        margin-bottom: 20px;
+        letter-spacing: 10px;
+        /* Add some letter spacing for LED-like appearance */
+        text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        /* Add a red glow effect */
+      }
 
-        .separator {
-            margin: 20px 0;
-            border-top: 2px solid #2c3e50;
-        }
+      .separator {
+        margin: 20px 0;
+        border-top: 2px solid #2c3e50;
+      }
 
-        button {
-            background-color: #e74c3c;
-            /* Red button */
-            color: #ecf0f1;
-            border: none;
-            padding: 10px 20px;
-            font-size: 18px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
+      button {
+        background-color: #e74c3c;
+        /* Red button */
+        color: #ecf0f1;
+        border: none;
+        padding: 10px 20px;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 5px;
+        margin-top: 10px;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="scoreboard">
-        <div class="timer" id="timer">01:30</div>
+      <div class="timer" id="timer">01:30</div>
 
-        <div class="team">PLAYER SCORE</div>
-        <div class="score" id="teamAScore">0</div>
+      <div class="team">SCORE</div>
+      <div class="score" id="teamAScore">0</div>
 
-        <div class="separator"></div>
+      <div class="separator"></div>
 
-        <button onclick="resetGame()">Reset</button>
-        <button onclick="toggleTimer()">Start/Stop Timer</button>
+      <button onclick="resetGame()">Reset</button>
+      <button onclick="toggleTimer()">Start/Stop Timer</button>
     </div>
     <h1>SSE: <span id="state"></span></h1>
     <h3>Data: <span id="data"></span></h3>
 
     <script>
-        let teamAScore = 0;
-        let timerSeconds = 90; // 3 minutes initially
-        let timerInterval;
+      let teamAScore = 0;
+      let timerSeconds = 90; // 3 minutes initially
+      let timerInterval;
 
-        function updateScore() {
-            teamAScore++;
-            document.getElementById('teamAScore').innerText = teamAScore;
-        }
+      function updateScore() {
+        teamAScore++;
+        document.getElementById("teamAScore").innerText = teamAScore;
+      }
 
-        function resetGame() {
-            teamAScore = 0;
-            document.getElementById('teamAScore').innerText = teamAScore;
-            timerSeconds = 90;
-            const minutes = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-            const seconds = (timerSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `${minutes}:${seconds}`;
-        }
+      function resetGame() {
+        teamAScore = 0;
+        document.getElementById("teamAScore").innerText = teamAScore;
+        timerSeconds = 90;
+        const minutes = Math.floor(timerSeconds / 60)
+          .toString()
+          .padStart(2, "0");
+        const seconds = (timerSeconds % 60).toString().padStart(2, "0");
+        document.getElementById("timer").innerText = `${minutes}:${seconds}`;
+      }
 
-        function updateTimer() {
-            const minutes = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-            const seconds = (timerSeconds % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `${minutes}:${seconds}`;
+      function updateTimer() {
+        const minutes = Math.floor(timerSeconds / 60)
+          .toString()
+          .padStart(2, "0");
+        const seconds = (timerSeconds % 60).toString().padStart(2, "0");
+        document.getElementById("timer").innerText = `${minutes}:${seconds}`;
 
-            if (timerSeconds === 0) {
-                clearInterval(timerInterval);
-            } else {
-                timerSeconds--;
-            }
-        }
-
-        function toggleTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            } else {
-                timerInterval = setInterval(updateTimer, 1000);
-            }
-        }
-        if (!!window.EventSource) {
-            var source = new EventSource('/scoreboard/subscribe')
-
-            source.addEventListener('message', function (e) {
-                document.getElementById('data').innerHTML = JSON.stringify(e.data);
-                console.log(JSON.stringify(e.data));
-                if(!timerInterval){
-                    toggleTimer();
-                }
-                updateScore();
-            }, false)
-
-            source.addEventListener('open', function (e) {
-                document.getElementById('state').innerHTML = "Connected"
-            }, false)
-
-            source.addEventListener('error', function (e) {
-                const id_state = document.getElementById('state')
-                if (e.eventPhase == EventSource.CLOSED)
-                    source.close()
-                if (e.target.readyState == EventSource.CLOSED) {
-                    id_state.innerHTML = "Disconnected"
-                }
-                else if (e.target.readyState == EventSource.CONNECTING) {
-                    id_state.innerHTML = "Connecting..."
-                }
-            }, false)
+        if (timerSeconds === 0) {
+          clearInterval(timerInterval);
         } else {
-            console.log("Your browser doesn't support SSE")
+          timerSeconds--;
         }
-    </script>
-</body>
+      }
 
+      function toggleTimer() {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        } else {
+          timerInterval = setInterval(updateTimer, 1000);
+        }
+      }
+      if (!!window.EventSource) {
+        let source = null;
+
+        function connect() {
+          source = new EventSource("/scoreboard/subscribe");
+          console.log("connecting...")
+          source.onerror = function () {
+            source.close();
+          };
+        }
+        connect();
+
+        source.addEventListener(
+          "message",
+          function (e) {
+            document.getElementById("data").innerHTML = JSON.stringify(e.data);
+            console.log(JSON.stringify(e.data));
+            if (!timerInterval) {
+              toggleTimer();
+            }
+            updateScore();
+          },
+          false
+        );
+
+        source.addEventListener(
+          "open",
+          function (e) {
+            document.getElementById("state").innerHTML = "Connected";
+          },
+          false
+        );
+
+        source.addEventListener(
+          "error",
+          function (e) {
+            let reconnectTimer;
+            const id_state = document.getElementById("state");
+            if (e.eventPhase == EventSource.CLOSED) source.close();
+            if (e.target.readyState == EventSource.CLOSED) {
+              id_state.innerHTML = "Disconnected";
+              //reconnectTimer = setInterval(connect, 3000);
+            } else if (e.target.readyState == EventSource.CONNECTING) {
+              id_state.innerHTML = "Connecting...";
+              //clearInterval(reconnectTimer);
+            }
+          },
+          false
+        );
+      } else {
+        console.log("Your browser doesn't support SSE");
+      }
+    </script>
+  </body>
 </html>

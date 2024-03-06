@@ -6,10 +6,8 @@ volumes:
 services:
   balena-hello-world:
     build: .
-    ports:
-      - "80:3000"
-      - "4321:4321"
-
+    network_mode: "host"
+    
   browser:
     image: bh.cr/balenalabs/browser-armv7hf # where <arch> is one of aarch64, arm32 or amd64
     privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
