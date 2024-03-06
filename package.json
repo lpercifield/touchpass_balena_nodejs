@@ -1,30 +1,16 @@
 {
-  "name": "simple-server-node",
-  "version": "2.0.0",
-  "description": "A simple Expressjs Web server on balena",
-  "main": "server.js",
+  "name": "soccergame",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test" : "echo \"Error: no test specified\"",
-    "start": "node src/server.js"
+    "start": "node ./bin/www"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/balena-io-projects/simple-server-node.git"
-  },
-  "keywords": [
-    "webserver",
-    "nodejs",
-    "expressjs"
-  ],
-  "author": "Shaun Mulligan <shaun@balena.io>",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/balena-io-projects/simple-server-node/issues"
-  },
-  "homepage": "https://github.com/balena-io-projects/simple-server-node#readme",
   "dependencies": {
-    "express": "~4.17.1",
-    "serve-favicon": "~2.5.0"
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "http-errors": "~1.6.3",
+    "morgan": "~1.9.1"
   }
 }
