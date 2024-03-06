@@ -86,7 +86,6 @@ app.use(function (err, req, res, next) {
 // });
 // server.listen(52275, "0.0.0.0");
 
-
 function generateBothRandom(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;
   // run this loop until numberOne is different than numberTwo
@@ -123,22 +122,31 @@ socket.on("message", function (message, remote) {
     "SERVER RECEIVED:",
     remote.address + ":" + remote.port + " - " + message
   );
-  var receivedJson = JSON.parse(message.toString());
-  
-  //var responseJson = {"activeId":13456262,"nextId":87654321};
-  if (receivedJson.goal === 1) {
-    events.emit("socket-data", receivedJson);
-    numberOne = numberTwo;
-    generateRandom(0, 5);
+  try {
+    var receivedJson = JSON.parse(message.toString());
+    console.log(receivedJson.count);
+    // expected output: 42
+    console.log(receivedJson.result);
+    // expected output: true
+    if (receivedJson.goal === 1) {
+      events.emit("socket-data", receivedJson);
+      numberOne = numberTwo;
+      generateRandom(0, 5);
+    }
+    const response = JSON.stringify({
+      activeId: deviceArray[numberOne],
+      nextId: deviceArray[numberTwo],
+    });
+    console.log("Sending: " + response);
+    //const response = "Hellow there!";
+    socket.setBroadcast(true);
+    socket.send(response, 0, response.length, remote.port, "255.255.255.255");
+  } catch (e) {
+    console.log(e);
+    // expected output: SyntaxError: Unexpected token o in JSON at position 1
   }
-  const response = JSON.stringify({
-    activeId: deviceArray[numberOne],
-    nextId: deviceArray[numberTwo],
-  });
-  console.log("Sending: " + response);
-  //const response = "Hellow there!";
-  socket.setBroadcast(true);
-  socket.send(response, 0, response.length, remote.port, "255.255.255.255");
+
+  //var responseJson = {"activeId":13456262,"nextId":87654321};
 });
 
 socket.bind("4321");
