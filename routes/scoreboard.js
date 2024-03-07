@@ -1,10 +1,25 @@
 var express = require("express");
 var router = express.Router();
 
+// var score = 0;
+// var event = req.app.get("event");
+//   event.on("socket-data", function (data) {
+//     // console.log("data: " + JSON.stringify(data));
+//     // res.write("event: message\n");
+//     // res.write(`data: ${JSON.stringify(data)}\n`);
+//     // res.write(`id: ${counter}\n\n`);
+//     score++;
+//   });
+
 /* GET users listing. */
 router.get("/", function (req, res, next) {
   res.render("scoreboard", { title: "ScoreBoard" });
 });
+router.get("/reset", (req, res) => {
+  var event = req.app.get("event");
+  event.emit("game-reset");
+  res.send("ok");
+})
 router.get("/subscribe", (req, res) => {
   // ...
 

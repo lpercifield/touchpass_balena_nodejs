@@ -24,6 +24,7 @@ var counter = 0;
 
 var numberOne = 3;
 var numberTwo = 3;
+var gameScore = 0;
 
 const net = require("net");
 
@@ -106,6 +107,10 @@ function generateRandom(min, max) {
 }
 generateBothRandom(0, 5);
 
+events.addListener("reset-game",function(){
+  gameScore = 0;
+})
+
 socket.on("listening", function () {
   const address = socket.address();
   console.log(
@@ -129,6 +134,10 @@ socket.on("message", function (message, remote) {
    // console.log(receivedJson.result);
     // expected output: true
     if (receivedJson.goal === 1) {
+      gameScore++;
+      var sharedJson = null
+      sharedJson.score = gameScore;
+      sharedJson.reactTime = receivedJson.reactTime;
       events.emit("socket-data", receivedJson);
       numberOne = numberTwo;
       generateRandom(0, 5);

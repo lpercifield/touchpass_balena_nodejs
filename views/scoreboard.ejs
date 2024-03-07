@@ -91,8 +91,8 @@
       let timerSeconds = 90; // 3 minutes initially
       let timerInterval;
 
-      function updateScore() {
-        teamAScore++;
+      function updateScore(score) {
+        teamAScore = score;
         document.getElementById("teamAScore").innerText = teamAScore;
       }
 
@@ -131,6 +131,7 @@
       }
       if (!!window.EventSource) {
         let source = null;
+        let reconnectTimer = null;
 
         function connect() {
           source = new EventSource("/scoreboard/subscribe");
@@ -145,11 +146,13 @@
           "message",
           function (e) {
             document.getElementById("data").innerHTML = JSON.stringify(e.data);
-            console.log(JSON.stringify(e.data));
+            var recJson = JSON.parse(e.data);
+            console.log(recJson);
+            console.log(recJson.reactTime);
             if (!timerInterval) {
               toggleTimer();
             }
-            updateScore();
+            updateScore(e.id);
           },
           false
         );
@@ -165,7 +168,7 @@
         source.addEventListener(
           "error",
           function (e) {
-            let reconnectTimer;
+            
             const id_state = document.getElementById("state");
             if (e.eventPhase == EventSource.CLOSED) source.close();
             if (e.target.readyState == EventSource.CLOSED) {
