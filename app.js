@@ -33,6 +33,7 @@ var app = express();
 var e = require("events");
 var events = new e.EventEmitter();
 app.set("event", events);
+// var io = app.get("socketio");
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -107,9 +108,10 @@ function generateRandom(min, max) {
 }
 generateBothRandom(0, 5);
 
-events.addListener("reset-game",function(){
+events.addListener("game-reset", function () {
+  console.log("resetting game");
   gameScore = 0;
-})
+});
 
 socket.on("listening", function () {
   const address = socket.address();
@@ -135,10 +137,10 @@ socket.on("message", function (message, remote) {
     // expected output: true
     if (receivedJson.goal === 1) {
       gameScore++;
-      var sharedJson = null
+      var sharedJson = {};
       sharedJson.score = gameScore;
       sharedJson.reactTime = receivedJson.reactTime;
-      events.emit("socket-data", receivedJson);
+      events.emit("socket-data", sharedJson);
       numberOne = numberTwo;
       generateRandom(0, 5);
     }
@@ -157,6 +159,11 @@ socket.on("message", function (message, remote) {
 
   //var responseJson = {"activeId":13456262,"nextId":87654321};
 });
+// app.on("listening", function () {
+//   // server ready to accept connections here
+//   var io = app.get("socketio");
+//   console.log(io)
+// });
 
 socket.bind("4321");
 

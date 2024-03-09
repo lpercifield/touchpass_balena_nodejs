@@ -86,10 +86,47 @@
     <h1>SSE: <span id="state"></span></h1>
     <h3>Data: <span id="data"></span></h3>
 
+    <script src="/socket.io/socket.io.js"></script>
+
     <script>
       let teamAScore = 0;
       let timerSeconds = 90; // 3 minutes initially
       let timerInterval;
+      const socket = io();
+
+      // connection
+      function socketConnect() {
+        document.getElementById("state").innerHTML = "Socket Connected";
+        console.log("Before Setting Listener")
+        socket.on("data", (value) => {
+          var recJson = JSON.parse(value);
+          document.getElementById("data").innerHTML = JSON.stringify(value);
+          console.log(recJson);
+          console.log(recJson.reactTime);
+          if (!timerInterval) {
+            toggleTimer();
+          }
+          updateScore(recJson.score);
+        });
+      }
+      socket.on("connect", () => {
+        socketConnect();
+      });
+
+      // socket.on("connect_error", () => {
+      //   document.getElementById("state").innerHTML = "Connection Error";
+      //   setTimeout(() => {
+      //     socket.connect();
+      //   }, 1000);
+      // });
+      socket.on("disconnect", function () {
+        document.getElementById("state").innerHTML = "Socket Disconnected";
+        //socketCleanup(); // this is a function to cleanup all listeners, just in case, so you can restart fresh
+        // socket.on("connect", function () {
+        //   console.log("Calling socketConnect")
+        //   socketConnect();
+        // });
+      });
 
       function updateScore(score) {
         teamAScore = score;
@@ -115,6 +152,9 @@
         document.getElementById("timer").innerText = `${minutes}:${seconds}`;
 
         if (timerSeconds === 0) {
+          // fetch("/scoreboard/reset", {
+          //   method: "GET", // default, so we can ignore
+          // });
           clearInterval(timerInterval);
         } else {
           timerSeconds--;
@@ -126,64 +166,64 @@
           clearInterval(timerInterval);
           timerInterval = null;
         } else {
+          timerSeconds = 90;
           timerInterval = setInterval(updateTimer, 1000);
         }
       }
-      if (!!window.EventSource) {
-        let source = null;
-        let reconnectTimer = null;
+      // if (!!window.EventSource) {
+      //   let source = null;
+      //   let reconnectTimer = null;
 
-        function connect() {
-          source = new EventSource("/scoreboard/subscribe");
-          console.log("connecting...")
-          source.onerror = function () {
-            source.close();
-          };
-        }
-        connect();
+      //   function connect() {
+      //     source = new EventSource("/scoreboard/subscribe");
+      //     console.log("connecting...");
+      //     source.onerror = function () {
+      //       source.close();
+      //     };
+      //   }
+      //   connect();
 
-        source.addEventListener(
-          "message",
-          function (e) {
-            document.getElementById("data").innerHTML = JSON.stringify(e.data);
-            var recJson = JSON.parse(e.data);
-            console.log(recJson);
-            console.log(recJson.reactTime);
-            if (!timerInterval) {
-              toggleTimer();
-            }
-            updateScore(e.id);
-          },
-          false
-        );
+      //   source.addEventListener(
+      //     "message",
+      //     function (e) {
+      //       document.getElementById("data").innerHTML = JSON.stringify(e.data);
+      //       var recJson = JSON.parse(e.data);
+      //       console.log(recJson);
+      //       console.log(recJson.reactTime);
+      //       if (!timerInterval) {
+      //         toggleTimer();
+      //       }
+      //       updateScore(recJson.score);
+      //     },
+      //     false
+      //   );
 
-        source.addEventListener(
-          "open",
-          function (e) {
-            document.getElementById("state").innerHTML = "Connected";
-          },
-          false
-        );
+      //   source.addEventListener(
+      //     "open",
+      //     function (e) {
+      //       document.getElementById("state").innerHTML = "Connected";
+      //     },
+      //     false
+      //   );
 
-        source.addEventListener(
-          "error",
-          function (e) {
-            
-            const id_state = document.getElementById("state");
-            if (e.eventPhase == EventSource.CLOSED) source.close();
-            if (e.target.readyState == EventSource.CLOSED) {
-              id_state.innerHTML = "Disconnected";
-              //reconnectTimer = setInterval(connect, 3000);
-            } else if (e.target.readyState == EventSource.CONNECTING) {
-              id_state.innerHTML = "Connecting...";
-              //clearInterval(reconnectTimer);
-            }
-          },
-          false
-        );
-      } else {
-        console.log("Your browser doesn't support SSE");
-      }
+      //   source.addEventListener(
+      //     "error",
+      //     function (e) {
+      //       const id_state = document.getElementById("state");
+      //       if (e.eventPhase == EventSource.CLOSED) source.close();
+      //       if (e.target.readyState == EventSource.CLOSED) {
+      //         id_state.innerHTML = "Disconnected";
+      //         //reconnectTimer = setInterval(connect, 3000);
+      //       } else if (e.target.readyState == EventSource.CONNECTING) {
+      //         id_state.innerHTML = "Connecting...";
+      //         //clearInterval(reconnectTimer);
+      //       }
+      //     },
+      //     false
+      //   );
+      // } else {
+      //   console.log("Your browser doesn't support SSE");
+      // }
     </script>
   </body>
 </html>
