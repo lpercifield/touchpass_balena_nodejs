@@ -121,6 +121,7 @@
       // });
       socket.on("disconnect", function () {
         document.getElementById("state").innerHTML = "Socket Disconnected";
+        socket.off("data");
         //socketCleanup(); // this is a function to cleanup all listeners, just in case, so you can restart fresh
         // socket.on("connect", function () {
         //   console.log("Calling socketConnect")

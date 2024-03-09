@@ -1,5 +1,7 @@
 const io = require("socket.io")();
 var app = require("./app");
+var event = app.get("event");
+
 const socketapi = {
   io: io,
 };
@@ -8,8 +10,11 @@ const socketapi = {
 io.on("connection", function (socket) {
   console.log("A user connected");
 });
+io.on("reset", function (socket) {
+  console.log("reset called");
+});
 
-var event = app.get("event");
+
 // end of socket.io logic
 
   event.on("socket-data", function (data) {
