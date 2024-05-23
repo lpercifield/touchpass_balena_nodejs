@@ -4,7 +4,7 @@ const dgram = require("dgram");
 const socket = dgram.createSocket("udp4");
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
-const deviceArray = [13456292,13456292];
+const deviceArray = [13456292];
 // const jsonArray = [
 //   { activeId: 13456292, nextId: 5867696 },
 //   { activeId: 5867696, nextId: 13456292 },
@@ -13,40 +13,43 @@ const deviceArray = [13456292,13456292];
 //   { activeId: 13456292, nextId: 5867696 },
 //   { activeId: 5867696, nextId: 13456292 },
 // ];
-const jsonArray = [
-  { activeId: 13456292, nextId: 5867696 },
-  // { activeId: 5867696, nextId: 13456292 },
-  // { activeId: 13456292, nextId: 5867696 },
-  // { activeId: 5867696, nextId: 13456292 },
-  // { activeId: 13456292, nextId: 5867696 },
-  // { activeId: 5867696, nextId: 13456292 },
-];
+
+var numDevices = deviceArray.length;
 var counter = 0;
 
-var numberOne = 3;
-var numberTwo = 3;
+var activeTarget = 3;
+var nextTarget = 3;
 var gameScore = 0;
 var numTargets = 1;
 
-function generateBothRandom(min, max) {
+function generateRandomActiveNext(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;
-  // run this loop until numberOne is different than numberTwo
-  do {
-    numberOne = Math.floor(Math.random() * (max - min + 1)) + min;
-  } while (numberOne === numberTwo);
+  // run this loop until activeTarget is different than nextTarget
+  if (min !== max) {
+    do {
+      activeTarget = Math.floor(Math.random() * (max - min + 1)) + min;
+    } while (activeTarget === nextTarget);
 
-  // run this loop until numberTwo is different than numberOne
-  do {
-    numberTwo = Math.floor(Math.random() * (max - min + 1)) + min;
-  } while (numberTwo === numberOne);
+    // run this loop until nextTarget is different than activeTarget
+    do {
+      nextTarget = Math.floor(Math.random() * (max - min + 1)) + min;
+    } while (nextTarget === activeTarget);
+  } else {
+    activeTarget = min;
+    nextTarget = max;
+  }
 }
-function generateRandom(min, max) {
-  // run this loop until numberTwo is different than numberOne
-  do {
-    numberTwo = Math.floor(Math.random() * (max - min + 1)) + min;
-  } while (numberTwo === numberOne);
+function generateRandomNext(min, max) {
+  if (min !== max) {
+    // run this loop until nextTarget is different than activeTarget
+    do {
+      nextTarget = Math.floor(Math.random() * (max - min + 1)) + min;
+    } while (nextTarget === activeTarget);
+  }else{
+    nextTarget = max;
+  }
 }
-generateBothRandom(0, 1);
+generateRandomActiveNext(0, numDevices-1);
 
 events.addListener("game-reset", function () {
   console.log("resetting game");
@@ -81,12 +84,12 @@ socket.on("message", function (message, remote) {
       sharedJson.score = gameScore;
       sharedJson.reactTime = receivedJson.reactTime;
       events.emit("socket-data", sharedJson);
-      numberOne = numberTwo;
-      generateRandom(0, 1);
+      activeTarget = nextTarget;
+      generateRandomNext(0, numDevices - 1);
     }
     const response = JSON.stringify({
-      activeId: deviceArray[numberOne],
-      nextId: deviceArray[numberTwo],
+      activeId: deviceArray[activeTarget],
+      nextId: deviceArray[nextTarget],
     });
     console.log("Sending: " + response);
     //const response = "Hellow there!";
