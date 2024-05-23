@@ -9,18 +9,25 @@ const socketapi = {
 // Add your socket.io logic here!
 io.on("connection", function (socket) {
   console.log("A user connected");
+  socket.on("game-reset", function (message) {
+    console.log("reset called");
+    event.emit("game-reset");
+  });
 });
-io.on("game-reset", function (socket) {
-  console.log("reset called");
-  event.emit("game-reset");
-});
-
+// io.on("game-reset", function (socket) {
+//   console.log("reset called");
+//   event.emit("game-reset");
+// });
+// io.on("message", function (socket) {
+//   console.log("got socket message");
+//   event.emit("game-reset");
+// });
 
 // end of socket.io logic
 
-  event.on("socket-data", function (data) {
-    //console.log("data: " + JSON.stringify(data));
-    io.emit("data", JSON.stringify(data));
-  });
+event.on("udpSocket-data", function (data) {
+  //console.log("data: " + JSON.stringify(data));
+  io.emit("data", JSON.stringify(data));
+});
 
 module.exports = socketapi;
