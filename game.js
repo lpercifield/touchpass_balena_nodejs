@@ -1,7 +1,7 @@
 var app = require("./app");
 var events = app.get("event");
 const dgram = require("dgram");
-const socket = dgram.createSocket("udp4");
+const udpSocket = dgram.createSocket("udp4");
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
 const deviceArray = [13456292];
@@ -56,18 +56,18 @@ events.addListener("game-reset", function () {
   gameScore = 0;
 });
 
-socket.on("listening", function () {
-  const address = socket.address();
+udpSocket.on("listening", function () {
+  const address = udpSocket.address();
   console.log(
-    "UDP socket listening on " + address.address + ":" + address.port
+    "UDP udpSocket listening on " + address.address + ":" + address.port
   );
-  socket.setBroadcast(true);
+  udpSocket.setBroadcast(true);
   // setInterval(() => {
-  //   socket.send(message, 0, message.length, 1234, "255.255.255.255");
+  //   udpSocket.send(message, 0, message.length, 1234, "255.255.255.255");
   // }, 5000);
 });
 
-socket.on("message", function (message, remote) {
+udpSocket.on("message", function (message, remote) {
   console.log(
     "SERVER RECEIVED:",
     remote.address + ":" + remote.port + " - " + message
@@ -83,7 +83,7 @@ socket.on("message", function (message, remote) {
       var sharedJson = {};
       sharedJson.score = gameScore;
       sharedJson.reactTime = receivedJson.reactTime;
-      events.emit("socket-data", sharedJson);
+      events.emit("udpSocket-data", sharedJson);
       activeTarget = nextTarget;
       generateRandomNext(0, numDevices - 1);
     }
@@ -93,8 +93,8 @@ socket.on("message", function (message, remote) {
     });
     console.log("Sending: " + response);
     //const response = "Hellow there!";
-    socket.setBroadcast(true);
-    socket.send(response, 0, response.length, remote.port, "255.255.255.255");
+    udpSocket.setBroadcast(true);
+    udpSocket.send(response, 0, response.length, remote.port, "255.255.255.255");
   } catch (e) {
     console.log(e);
     // expected output: SyntaxError: Unexpected token o in JSON at position 1
@@ -108,4 +108,4 @@ socket.on("message", function (message, remote) {
 //   console.log(io)
 // });
 
-socket.bind("4321");
+udpSocket.bind("4321");

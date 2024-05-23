@@ -10,8 +10,9 @@ const socketapi = {
 io.on("connection", function (socket) {
   console.log("A user connected");
 });
-io.on("reset", function (socket) {
+io.on("game-reset", function (socket) {
   console.log("reset called");
+  event.emit("game-reset");
 });
 
 

@@ -143,6 +143,7 @@
           .padStart(2, "0");
         const seconds = (timerSeconds % 60).toString().padStart(2, "0");
         document.getElementById("timer").innerText = `${minutes}:${seconds}`;
+        socket.emit("game-reset");
       }
 
       function updateTimer() {
