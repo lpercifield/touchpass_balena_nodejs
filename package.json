@@ -9,9 +9,22 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "ejs": "^3.1.9",
-    "express": "^4.18.2",
+    "express": "^4.18.3",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "socket.io": "^4.7.4"
-  }
+  },
+  "description": "[![balena deploy button](https://www.balena.io/deploy.svg)](https://dashboard.balena-cloud.com/deploy?repoUrl=https://github.com/balena-io-examples/balena-node-hello-world)",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lpercifield/touchpass_balena_nodejs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lpercifield/touchpass_balena_nodejs/issues"
+  },
+  "homepage": "https://github.com/lpercifield/touchpass_balena_nodejs#readme"
 }

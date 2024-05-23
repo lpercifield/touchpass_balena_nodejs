@@ -1,0 +1,51 @@
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#buttons-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+}
+
+.button {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #3498db;
+    color: #fff;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.button:nth-child(1) {
+    transform: rotate(60deg) translate(150px) rotate(-60deg);
+}
+
+.button:nth-child(2) {
+    transform: rotate(120deg) translate(150px) rotate(-120deg);
+}
+
+.button:nth-child(3) {
+    transform: rotate(180deg) translate(150px) rotate(-180deg);
+}
+
+.button:nth-child(4) {
+    transform: rotate(240deg) translate(150px) rotate(-240deg);
+}
+
+.button:nth-child(5) {
+    transform: rotate(300deg) translate(150px) rotate(-300deg);
+}
+
+.button:nth-child(6) {
+    transform: rotate(360deg) translate(150px) rotate(-360deg);
+}
