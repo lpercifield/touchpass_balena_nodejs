@@ -8,7 +8,7 @@
       body {
         font-family: "Courier New", monospace;
         /* Monospaced font */
-        background-color: #3498db;
+        background-color: #000000;
         /* Blue background */
         color: #e74c3c;
         /* Red text */
@@ -18,11 +18,11 @@
       }
 
       .scoreboard {
-        background-color: #2980b9;
+        background-color: #000000;
         /* Slightly darker blue for the scoreboard */
         border-radius: 10px;
         padding: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
         margin: auto;
         max-width: 600px;
       }
@@ -36,9 +36,10 @@
       }
 
       .score {
-        font-size: 160px;
+        font-size: 500px;
         margin-bottom: 20px;
         letter-spacing: 6px;
+        text-shadow: 0 0 50px rgba(255, 0, 0, 0.7);
         /* Add some letter spacing for LED-like appearance */
       }
 
@@ -77,6 +78,7 @@
 
       <div class="team">SCORE</div>
       <div class="score" id="teamAScore">0</div>
+      <div class="team" id="lastScore">LAST SCORE: 0</div>
 
       <div class="separator"></div>
 
@@ -136,6 +138,8 @@
 
       function resetGame() {
         console.log("calling reset");
+        toggleTimer();
+        document.getElementById("lastScore").innerText = "Last SCORE: " + teamAScore;
         teamAScore = 0;
         document.getElementById("teamAScore").innerText = teamAScore;
         timerSeconds = 90;
@@ -169,7 +173,7 @@
           clearInterval(timerInterval);
           timerInterval = null;
         } else {
-          timerSeconds = 90;
+          timerSeconds = 89;
           timerInterval = setInterval(updateTimer, 1000);
         }
       }
