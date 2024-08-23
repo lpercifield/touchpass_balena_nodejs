@@ -4,7 +4,7 @@ const dgram = require("dgram");
 const udpSocket = dgram.createSocket("udp4");
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
-const deviceArray = [13456292];
+const deviceArray = [13456292,5806000];
 // const jsonArray = [
 //   { activeId: 13456292, nextId: 5867696 },
 //   { activeId: 5867696, nextId: 13456292 },
@@ -20,7 +20,7 @@ var counter = 0;
 var activeTarget = 3;
 var nextTarget = 3;
 var gameScore = 0;
-var numTargets = 1;
+var numTargets = deviceArray.length;
 
 function generateRandomActiveNext(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;
