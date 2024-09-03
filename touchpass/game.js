@@ -4,7 +4,8 @@ const dgram = require("dgram");
 const udpSocket = dgram.createSocket("udp4");
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
-const deviceArray = [13456292,5806000];
+//const deviceArray = [13456292, 5806000, 5800040];
+const deviceArray = process.env.DEVICE_ARRAY.split(",");
 // const jsonArray = [
 //   { activeId: 13456292, nextId: 5867696 },
 //   { activeId: 5867696, nextId: 13456292 },
@@ -16,6 +17,7 @@ const deviceArray = [13456292,5806000];
 
 var numDevices = deviceArray.length;
 var counter = 0;
+console.log(deviceArray.toString());
 
 var activeTarget = 3;
 var nextTarget = 3;
@@ -91,10 +93,10 @@ udpSocket.on("message", function (message, remote) {
       activeId: deviceArray[activeTarget],
       nextId: deviceArray[nextTarget],
     });
-    console.log("Sending: " + response);
+    console.log("Sending: " + response + "to port - " + remote.port);
     //const response = "Hellow there!";
     udpSocket.setBroadcast(true);
-    udpSocket.send(response, 0, response.length, remote.port, "255.255.255.255");
+    udpSocket.send(response, 0, response.length, remote.port, "10.42.0.255");
   } catch (e) {
     console.log(e);
     // expected output: SyntaxError: Unexpected token o in JSON at position 1

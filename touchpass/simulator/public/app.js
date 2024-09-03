@@ -22,6 +22,7 @@
 //     document.body.style.backgroundColor = newColor;
 //   });
 // });
+//{"deviceId":5867696,"goal":0,"reactTime":0}
 
 document.addEventListener("DOMContentLoaded", () => {
   const socket = io();
