@@ -55,7 +55,7 @@ function enableUSB() {
   request(options, function (error, response, body) {
     if (error) throw new Error(error);
 
-    console.log(body);
+    console.log("enableUSB"+body);
   });
 }
 function setFramerate() {
@@ -70,7 +70,7 @@ function setFramerate() {
   request(options, function (error, response, body) {
     if (error) throw new Error(error);
 
-    console.log(body);
+    console.log("setFramerate"+body);
   });
 }
 function setResolution() {
@@ -84,7 +84,7 @@ function setResolution() {
   request(options, function (error, response, body) {
     if (error) throw new Error(error);
 
-    console.log(body);
+    console.log("setResolution"+body);
   });
 }
 function startRecording(callback) {
@@ -96,8 +96,8 @@ function startRecording(callback) {
   request(options, function (error, response, body) {
     if (error) throw new Error(error);
 
-    console.log(body);
-    startTime = Date.now();
+    console.log("startRecording" + body);
+    //startTime = Date.now();
     return callback();
   });
 }
@@ -110,8 +110,8 @@ function stopRecording(callback) {
   request(options, function (error, response, body) {
     if (error) throw new Error(error);
 
-    console.log(body);
-    console.log(Date.now() - startTime);
+    console.log("stopRecoring"+body);
+    //console.log(Date.now() - startTime);
     return callback();
   });
 }
