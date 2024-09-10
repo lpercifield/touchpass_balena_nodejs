@@ -22,7 +22,10 @@ console.log(deviceArray.toString());
 var activeTarget = 3;
 var nextTarget = 3;
 var gameScore = 0;
+//var gameLength = 90;
+var timerSeconds = 90;
 var numTargets = deviceArray.length;
+var gameTimer = new Interval(gameTick, 1000);
 
 function generateRandomActiveNext(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -56,6 +59,8 @@ generateRandomActiveNext(0, numDevices-1);
 events.addListener("game-reset", function () {
   console.log("resetting game");
   gameScore = 0;
+  gameTimer.stop();
+  timerSeconds = 90;
 });
 
 udpSocket.on("listening", function () {
@@ -81,6 +86,9 @@ udpSocket.on("message", function (message, remote) {
     // console.log(receivedJson.result);
     // expected output: true
     if (receivedJson.goal === 1) {
+      if (!gameTimer.isRunning()) {
+        gameTimer.start();
+      }
       gameScore++;
       var sharedJson = {};
       sharedJson.score = gameScore;
@@ -111,3 +119,37 @@ udpSocket.on("message", function (message, remote) {
 // });
 
 udpSocket.bind("4321");
+
+function gameTick(){
+  if (timerSeconds === 0) {
+    // fetch("/scoreboard/reset", {
+    //   method: "GET", // default, so we can ignore
+    // });
+    gameTimer.stop();
+  } else {
+    timerSeconds--;
+  }
+  //"timer-tick";
+  events.emit("timer-tick", timerSeconds);
+}
+
+function Interval(fn, time) {
+  var timer = false;
+  this.start = function () {
+    if (!this.isRunning()) timer = setInterval(fn, time);
+  };
+  this.stop = function () {
+    clearInterval(timer);
+    timer = false;
+  };
+  this.isRunning = function () {
+    return timer !== false;
+  };
+}
+
+// var i = new Interval(fncName, 1000);
+// i.start();
+
+// if (i.isRunning())
+
+// i.stop();

@@ -1,12 +1,14 @@
 version: "2"
 
 volumes:
-  settings:
+  videos:
 
 services:
-  balena-hello-world:
+  touchpass:
     build: ./touchpass
     network_mode: "host"
+    volumes:
+      - 'videos:/data'
 
   wifi-repeater:
     build: ./wifi-repeater
@@ -15,11 +17,11 @@ services:
     labels:
       io.balena.features.dbus: '1'
     
-  browser:
-    image: bh.cr/balenalabs/browser-armv7hf # where <arch> is one of aarch64, arm32 or amd64
-    privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
-    ports:
-        - '5011' # management API (optional)
-        - '35173' # Chromium debugging port (optional)
-    volumes:
-      - 'settings:/data' # Only required if using PERSISTENT flag (see below)
+  # browser:
+  #   image: bh.cr/balenalabs/browser-armv7hf # where <arch> is one of aarch64, arm32 or amd64
+  #   privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse
+  #   ports:
+  #       - '5011' # management API (optional)
+  #       - '35173' # Chromium debugging port (optional)
+  #   volumes:
+  #     - 'settings:/data' # Only required if using PERSISTENT flag (see below)

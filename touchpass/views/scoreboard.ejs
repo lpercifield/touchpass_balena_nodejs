@@ -110,6 +110,11 @@
           }
           updateScore(recJson.score);
         });
+        socket.on("timerTick", (value) => {
+          console.log("TimerSeconds: "+value);
+          timerSeconds = value;
+          updateTimer();
+        });
       }
       socket.on("connect", () => {
         socketConnect();
@@ -158,24 +163,24 @@
         const seconds = (timerSeconds % 60).toString().padStart(2, "0");
         document.getElementById("timer").innerText = `${minutes}:${seconds}`;
 
-        if (timerSeconds === 0) {
-          // fetch("/scoreboard/reset", {
-          //   method: "GET", // default, so we can ignore
-          // });
-          clearInterval(timerInterval);
-        } else {
-          timerSeconds--;
-        }
+        // if (timerSeconds === 0) {
+        //   // fetch("/scoreboard/reset", {
+        //   //   method: "GET", // default, so we can ignore
+        //   // });
+        //   clearInterval(timerInterval);
+        // } else {
+        //   timerSeconds--;
+        // }
       }
 
       function toggleTimer() {
-        if (timerInterval) {
-          clearInterval(timerInterval);
-          timerInterval = null;
-        } else {
-          timerSeconds = 89;
-          timerInterval = setInterval(updateTimer, 1000);
-        }
+        // if (timerInterval) {
+        //   clearInterval(timerInterval);
+        //   timerInterval = null;
+        // } else {
+        //   timerSeconds = 89;
+        //   timerInterval = setInterval(updateTimer, 1000);
+        // }
       }
       // if (!!window.EventSource) {
       //   let source = null;

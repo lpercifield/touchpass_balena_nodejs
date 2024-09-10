@@ -24,6 +24,10 @@ io.on("connection", function (socket) {
 // });
 
 // end of socket.io logic
+event.on("timer-tick", function (data) {
+  //console.log("data: " + JSON.stringify(data));
+  io.emit("timerTick", data);
+});
 
 event.on("udpSocket-data", function (data) {
   //console.log("data: " + JSON.stringify(data));
