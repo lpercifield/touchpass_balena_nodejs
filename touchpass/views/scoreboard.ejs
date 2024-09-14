@@ -54,7 +54,7 @@
       }
 
       .separator {
-        margin: 20px 0;
+        margin: 0;
         border-top: 2px solid #2c3e50;
       }
 
@@ -68,12 +68,26 @@
         cursor: pointer;
         border-radius: 5px;
         margin-top: 10px;
+        width: 200px;
+        height: 100px;
       }
     </style>
   </head>
 
   <body>
     <div class="scoreboard">
+      <div
+        id="qrcode"
+        style="
+          width: 600px;
+          height: 600px;
+          margin-top: 15px;
+          position: absolute;
+          top: 0;
+          left: 0;
+          display: none;
+        "
+      ></div>
       <div class="timer" id="timer">01:30</div>
 
       <div class="team">SCORE</div>
@@ -82,24 +96,44 @@
 
       <div class="separator"></div>
 
-      <button onclick="resetGame()">Reset</button>
-      <button onclick="toggleTimer()">Start/Stop Timer</button>
+      <button onclick="resetGame(true)">Reset</button>
+      <input type="checkbox" id="captureVideo" name="captureVideo" onclick='captueVideoClicked(this);' />
+      <label for="captureVideo">Capture Video</label>
+      <!-- <button onclick="toggleTimer()">Start/Stop Timer</button> -->
     </div>
+
     <h1>SSE: <span id="state"></span></h1>
     <h3>Data: <span id="data"></span></h3>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/js/qrcode.js"></script>
 
     <script>
       let teamAScore = 0;
       let timerSeconds = 90; // 3 minutes initially
       let timerInterval;
       const socket = io();
+      var qrcode = new QRCode(document.getElementById("qrcode"), {
+        text: "https://www.dropbox.com/scl/fi/rf1tk2b4trj5ut93fruy7/touchpass_1726079736203.mp4?rlkey=aq3jwxfus6crdegqi3v4777z3&dl=0",
+        width: 600,
+        height: 600,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H,
+      });
+
+      function makeCode(url) {
+        document.getElementById("qrcode").style.display = "block";
+        qrcode.makeCode(url);
+      }
+
+      //makeCode();
 
       // connection
       function socketConnect() {
         document.getElementById("state").innerHTML = "Socket Connected";
-        console.log("Before Setting Listener")
+        console.log("Before Setting Listener");
         socket.on("data", (value) => {
           var recJson = JSON.parse(value);
           document.getElementById("data").innerHTML = JSON.stringify(value);
@@ -111,9 +145,18 @@
           updateScore(recJson.score);
         });
         socket.on("timerTick", (value) => {
-          console.log("TimerSeconds: "+value);
+          console.log("TimerSeconds: " + value);
           timerSeconds = value;
           updateTimer();
+        });
+        socket.on("gameReset", (value) => {
+          console.log("Resetting Game");
+          resetGame(false);
+        });
+        socket.on("shareURL", (value) => {
+          console.log("share URL", value);
+          makeCode(value);
+          //resetGame(false);
         });
       }
       socket.on("connect", () => {
@@ -140,11 +183,16 @@
         teamAScore = score;
         document.getElementById("teamAScore").innerText = teamAScore;
       }
+      function captueVideoClicked(cb){
+        //cb.checked
+        socket.emit('capture-video',cb.checked);
+      }
 
-      function resetGame() {
+      function resetGame(sendSocket) {
         console.log("calling reset");
-        toggleTimer();
-        document.getElementById("lastScore").innerText = "Last SCORE: " + teamAScore;
+        //toggleTimer();
+        document.getElementById("lastScore").innerText =
+          "Last SCORE: " + teamAScore;
         teamAScore = 0;
         document.getElementById("teamAScore").innerText = teamAScore;
         timerSeconds = 90;
@@ -153,7 +201,10 @@
           .padStart(2, "0");
         const seconds = (timerSeconds % 60).toString().padStart(2, "0");
         document.getElementById("timer").innerText = `${minutes}:${seconds}`;
-        socket.emit("game-reset");
+        document.getElementById("qrcode").style.display = "none";
+        if (sendSocket) {
+          socket.emit("game-reset");
+        }
       }
 
       function updateTimer() {

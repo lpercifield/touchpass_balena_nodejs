@@ -12,6 +12,10 @@ io.on("connection", function (socket) {
   socket.on("game-reset", function (message) {
     console.log("reset called");
     event.emit("game-reset");
+    io.emit("gameReset", true);
+  });
+  socket.on("capture-video", function (message) {
+    event.emit("capture-video",message);
   });
 });
 // io.on("game-reset", function (socket) {
@@ -27,6 +31,10 @@ io.on("connection", function (socket) {
 event.on("timer-tick", function (data) {
   //console.log("data: " + JSON.stringify(data));
   io.emit("timerTick", data);
+});
+event.on("share-url", function (data) {
+  //console.log("data: " + JSON.stringify(data));
+  io.emit("shareURL", data);
 });
 
 event.on("udpSocket-data", function (data) {

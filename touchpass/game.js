@@ -7,11 +7,19 @@ const http = require("http"); // or 'https' for https:// URLs
 const https = require("https");
 const fs = require("fs");
 var ffmpeg = require("fluent-ffmpeg");
+//import { refreshAccessToken } from "./lib/index.js";
+const dropbox = require("./lib/dropboxRefreshToken.js");
+
+// import {
+//   getFreshSLAccessTokenFromRefreshToken
+// } from "./steps/dropboxStepsHelper.js";
+// import {
+//   refreshAccessToken,
+// } from "../lib/index.js";
 
 //createNewWatermark();
-enableUSB();
-setResolution();
-setFramerate();
+//5882560, 5880508, 5775764, 5880848, 5880456, 5878116;
+
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
 //const deviceArray = [13456292, 5806000, 5800040];
@@ -36,6 +44,8 @@ var gameScore = 0;
 var timerSeconds = 90;
 var numTargets = deviceArray.length;
 var gameTimer = new Interval(gameTick, 1000);
+var captureVideo = false;
+var gameOver = false;
 
 function generateRandomActiveNext(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -60,17 +70,22 @@ function generateRandomNext(min, max) {
     do {
       nextTarget = Math.floor(Math.random() * (max - min + 1)) + min;
     } while (nextTarget === activeTarget);
-  }else{
+  } else {
     nextTarget = max;
   }
 }
-generateRandomActiveNext(0, numDevices-1);
+generateRandomActiveNext(0, numDevices - 1);
 
 events.addListener("game-reset", function () {
   console.log("resetting game");
   gameScore = 0;
   gameTimer.stop();
+  gameOver = false;
   timerSeconds = 90;
+});
+events.addListener("capture-video", function (message) {
+  console.log("Setting Capture Video: ", message);
+  captureVideo = message;
 });
 
 udpSocket.on("listening", function () {
@@ -99,7 +114,9 @@ udpSocket.on("message", function (message, remote) {
       if (!gameTimer.isRunning()) {
         gameTimer.start();
       }
-      gameScore++;
+      if (!gameOver) {
+        gameScore++;
+      }
       var sharedJson = {};
       sharedJson.score = gameScore;
       sharedJson.reactTime = receivedJson.reactTime;
@@ -130,32 +147,39 @@ udpSocket.on("message", function (message, remote) {
 
 udpSocket.bind("4321");
 
-function gameTick(){
+function gameTick() {
   if (timerSeconds === 0) {
     // fetch("/scoreboard/reset", {
     //   method: "GET", // default, so we can ignore
     // });
     gameTimer.stop();
+    gameOver = true;
   } else {
     timerSeconds--;
   }
-  if(timerSeconds == 5){
-    startRecording(function () {
-      console.log("recording started");
-      setTimeout(() => {
-        stopRecording(function () {
-          setTimeout(() => {
-            getLastCaptureName(function (fileData) {
-              downloadFile(fileData, function (video) {
-                uploadFile(video);
-                //addTextOverlay(video, "Cool Text Overlay");
+  if (captureVideo) {
+    if (timerSeconds == 5) {
+      enableUSB();
+      setResolution();
+      setFramerate();
+      startRecording(function () {
+        console.log("recording started");
+        setTimeout(() => {
+          stopRecording(function () {
+            setTimeout(() => {
+              getLastCaptureName(function (fileData) {
+                downloadFile(fileData, function (video) {
+                  uploadFile(video);
+                  //addTextOverlay(video, "Cool Text Overlay");
+                });
               });
-            });
-          }, 2000);
-        });
-      }, 10000);
-    });
+            }, 2000);
+          });
+        }, process.env.VIDEO_LENGTH);
+      });
+    }
   }
+
   //"timer-tick";
   events.emit("timer-tick", timerSeconds);
 }
@@ -173,7 +197,6 @@ function Interval(fn, time) {
     return timer !== false;
   };
 }
-
 
 //testing("GX010021.MP4");
 // getLastCaptureName(function (fileData) {
@@ -383,37 +406,98 @@ function addTextOverlay(videoPath, textToOverlay) {
     // save to file
     .save(outputFilename);
 }
+
 function uploadFile(filename) {
-  fs.readFile(filename, function (err, data) {
-    const req = https.request(
-      "https://content.dropboxapi.com/2/files/upload",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ` + process.env.TOKEN,
-          "Dropbox-API-Arg": JSON.stringify({
-            path: "/Upload/touchpass_" + Date.now() + ".mp4",
-            mode: "overwrite",
-            autorename: true,
-            mute: false,
-            strict_conflict: false,
-          }),
-          "Content-Type": "application/octet-stream",
-        },
-      },
-      (res) => {
-        console.log("statusCode: ", res.statusCode);
-        console.log("headers: ", res.headers);
+  dropbox
+    .refreshAccessToken(
+      process.env.REFRESH_TOKEN,
+      process.env.DB_KEY,
+      process.env.DB_SECRET
+    )
+    .then((resultToken) => {
+      console.log("Have DB Key - upload starting");
+      var uploadPath = "/Upload/touchpass_" + Date.now() + ".mp4";
+      fs.readFile(filename, function (err, data) {
+        const req = https.request(
+          "https://content.dropboxapi.com/2/files/upload",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ` + resultToken,
+              "Dropbox-API-Arg": JSON.stringify({
+                path: uploadPath,
+                mode: "overwrite",
+                autorename: true,
+                mute: false,
+                strict_conflict: false,
+              }),
+              "Content-Type": "application/octet-stream",
+            },
+          },
+          (res) => {
+            console.log("statusCode: ", res.statusCode);
+            if (res.statusCode === 200) {
+              createSharedURL(resultToken, uploadPath);
+            }
+            console.log("headers: ", res.headers);
 
-        res.on("data", function (d) {
-          process.stdout.write(d);
-        });
+            res.on("data", function (d) {
+              process.stdout.write(d);
+            });
+          }
+        );
+
+        req.write(data);
+        req.end();
+      });
+    })
+    .catch((error) => {
+      const { message } = error;
+      if (message.includes("refresh token is invalid or revoked")) {
+        console.log("please unset DROPBOX_REFRESH_TOKEN to retry");
       }
-    );
+      console.log(`dropbox error: ${message}`);
+    });
+}
+function createSharedURL(token, filePath) {
+  const req = https.request(
+    "https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ` + token,
+        "Content-Type": "application/json",
+      },
+    },
+    (res) => {
+      console.log("statusCode: ", res.statusCode);
+      console.log("headers: ", res.headers);
+      // console.log("URL: ", res.data);
+      //   res.on("end", function () {
+      //     console.log(req.data);
+      //     console.log("URL",req.data.url);
+      //     // your code here if you want to use the results !
+      //   });
 
-    req.write(data);
-    req.end();
+      res.on("data", function (data) {
+        console.log("BODY: ", data);
+        var dataObj = JSON.parse(data);
+        console.log(dataObj.url);
+        events.emit("share-url", dataObj.url);
+      });
+    }
+  );
+
+  var data = JSON.stringify({
+    path: filePath,
+    settings: {
+      access: "viewer",
+      allow_download: true,
+      audience: "public",
+    },
   });
+  req.write(data);
+  req.end();
 }
 
 // var i = new Interval(fncName, 1000);
