@@ -19,6 +19,8 @@ const dropbox = require("./lib/dropboxRefreshToken.js");
 
 //createNewWatermark();
 //5882560, 5880508, 5775764, 5880848, 5880456, 5878116;
+//{"activeId":"5880848","nextId":"5880508"}
+//{"deviceId":5867695,"goal":1,"reactTime":0}
 
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
@@ -46,6 +48,7 @@ var numTargets = deviceArray.length;
 var gameTimer = new Interval(gameTick, 1000);
 var captureVideo = false;
 var gameOver = false;
+var animateInterval;
 
 function generateRandomActiveNext(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -87,6 +90,38 @@ events.addListener("capture-video", function (message) {
   console.log("Setting Capture Video: ", message);
   captureVideo = message;
 });
+
+function animateColors() {
+  var counter = 0;
+  var counterNext = 1;
+  console.log("Starting Animation");
+  animateInterval = setInterval(function () {
+    //generateRandomNext(0, numDevices - 1);
+    var animateresponse = JSON.stringify({
+      activeId: deviceArray[counter],
+      nextId: deviceArray[counterNext],
+    });
+    counter++;
+    counterNext++;
+    if (counter > numDevices - 1) {
+      counter = 0;
+    }
+    if (counterNext > numDevices - 1) {
+      counterNext = 0;
+    }
+    console.log("counter", counter);
+    console.log("Sending: " + animateresponse + "to port - " + "4432");
+    //const response = "Hellow there!";
+    udpSocket.setBroadcast(true);
+    udpSocket.send(
+      animateresponse,
+      0,
+      animateresponse.length,
+      "4432",
+      "10.42.0.255"
+    );
+  }, 500);
+}
 
 udpSocket.on("listening", function () {
   const address = udpSocket.address();
@@ -154,6 +189,17 @@ function gameTick() {
     // });
     gameTimer.stop();
     gameOver = true;
+    animateColors();
+    setTimeout(function () {
+      clearInterval(animateInterval);
+      const response = JSON.stringify({
+        activeId: deviceArray[activeTarget],
+        nextId: deviceArray[nextTarget],
+      });
+      console.log("Sending: " + response + "to port - " + "4432");
+      udpSocket.setBroadcast(true);
+      udpSocket.send(response, 0, response.length, "4432", "10.42.0.255");
+    }, 5000);
   } else {
     timerSeconds--;
   }
@@ -202,6 +248,8 @@ function Interval(fn, time) {
 // getLastCaptureName(function (fileData) {
 //   downloadFile(fileData);
 // });
+
+//GOPROSUFFF
 
 function enableUSB() {
   const options = {

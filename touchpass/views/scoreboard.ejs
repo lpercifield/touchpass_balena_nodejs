@@ -93,11 +93,17 @@
       <div class="team">SCORE</div>
       <div class="score" id="teamAScore">0</div>
       <div class="team" id="lastScore">LAST SCORE: 0</div>
+      <div class="team" id="highScore">HIGH SCORE: 0</div>
 
       <div class="separator"></div>
 
       <button onclick="resetGame(true)">Reset</button>
-      <input type="checkbox" id="captureVideo" name="captureVideo" onclick='captueVideoClicked(this);' />
+      <input
+        type="checkbox"
+        id="captureVideo"
+        name="captureVideo"
+        onclick="captueVideoClicked(this);"
+      />
       <label for="captureVideo">Capture Video</label>
       <!-- <button onclick="toggleTimer()">Start/Stop Timer</button> -->
     </div>
@@ -113,6 +119,8 @@
       let teamAScore = 0;
       let timerSeconds = 90; // 3 minutes initially
       let timerInterval;
+      var lastScore = 0;
+      var highScore = 0;
       const socket = io();
       var qrcode = new QRCode(document.getElementById("qrcode"), {
         text: "https://www.dropbox.com/scl/fi/rf1tk2b4trj5ut93fruy7/touchpass_1726079736203.mp4?rlkey=aq3jwxfus6crdegqi3v4777z3&dl=0",
@@ -183,25 +191,33 @@
         teamAScore = score;
         document.getElementById("teamAScore").innerText = teamAScore;
       }
-      function captueVideoClicked(cb){
+      function captueVideoClicked(cb) {
         //cb.checked
-        socket.emit('capture-video',cb.checked);
+        socket.emit("capture-video", cb.checked);
       }
 
       function resetGame(sendSocket) {
-        console.log("calling reset");
-        //toggleTimer();
-        document.getElementById("lastScore").innerText =
-          "Last SCORE: " + teamAScore;
-        teamAScore = 0;
-        document.getElementById("teamAScore").innerText = teamAScore;
-        timerSeconds = 90;
-        const minutes = Math.floor(timerSeconds / 60)
-          .toString()
-          .padStart(2, "0");
-        const seconds = (timerSeconds % 60).toString().padStart(2, "0");
-        document.getElementById("timer").innerText = `${minutes}:${seconds}`;
-        document.getElementById("qrcode").style.display = "none";
+        if (!sendSocket) {
+          console.log("calling reset");
+          //toggleTimer();
+          lastScore = teamAScore;
+          document.getElementById("lastScore").innerText =
+            "Last SCORE: " + lastScore;
+          if (highScore < lastScore) {
+            highScore = lastScore;
+            document.getElementById("highScore").innerText =
+              "High SCORE: " + highScore;
+          }
+          teamAScore = 0;
+          document.getElementById("teamAScore").innerText = teamAScore;
+          timerSeconds = 90;
+          const minutes = Math.floor(timerSeconds / 60)
+            .toString()
+            .padStart(2, "0");
+          const seconds = (timerSeconds % 60).toString().padStart(2, "0");
+          document.getElementById("timer").innerText = `${minutes}:${seconds}`;
+          document.getElementById("qrcode").style.display = "none";
+        }
         if (sendSocket) {
           socket.emit("game-reset");
         }
