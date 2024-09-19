@@ -1,21 +1,21 @@
 version: "2"
 
 volumes:
-  videos:
+  touchpass:
 
 services:
   touchpass:
     build: ./touchpass
     network_mode: "host"
     volumes:
-      - 'videos:/data'
+      - 'touchpass:/data'
 
-  wifi-repeater:
-    build: ./wifi-repeater
-    network_mode: "host"
-    privileged: true
-    labels:
-      io.balena.features.dbus: '1'
+  # wifi-repeater:
+  #   build: ./wifi-repeater
+  #   network_mode: "host"
+  #   privileged: true
+  #   labels:
+  #     io.balena.features.dbus: '1'
     
   # browser:
   #   image: bh.cr/balenalabs/browser-armv7hf # where <arch> is one of aarch64, arm32 or amd64

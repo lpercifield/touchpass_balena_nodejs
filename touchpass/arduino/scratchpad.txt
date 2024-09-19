@@ -1,0 +1,1 @@
+python3 "espota.py" -r -i 10.42.0.244 -p 3232 --auth=4TouchPass -f "touch_pass.ino.bin"

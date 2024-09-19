@@ -9,6 +9,10 @@ const fs = require("fs");
 var ffmpeg = require("fluent-ffmpeg");
 //import { refreshAccessToken } from "./lib/index.js";
 const dropbox = require("./lib/dropboxRefreshToken.js");
+const arduino = require("./arduino/updateESP32.js");
+const { log } = require("console");
+//const ipRange = "10.42.0.255";
+const ipRange = process.env.BROADCAST_ADDRESS;
 
 // import {
 //   getFreshSLAccessTokenFromRefreshToken
@@ -18,9 +22,16 @@ const dropbox = require("./lib/dropboxRefreshToken.js");
 // } from "../lib/index.js";
 
 //createNewWatermark();
+
 //5882560, 5880508, 5775764, 5880848, 5880456, 5878116;
+
 //{"activeId":"5880848","nextId":"5880508"}
 //{"deviceId":5867695,"goal":1,"reactTime":0}
+//sudo ln -sf ./cypress/cyfmac43455-sdio-minimal.bin brcmfmac43455-sdio.bin
+//brcmfmac43455-sdio.bin -> ../cypress/cyfmac43455-sdio.bin
+
+//order: 5880456,5775764,5880508,5882560,5878116,5880848
+//BEACON: 5880456,5880848,5878116,5882560,5880508,5775764
 
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
@@ -42,13 +53,18 @@ console.log(deviceArray.toString());
 var activeTarget = 3;
 var nextTarget = 3;
 var gameScore = 0;
+var targetCounter = 0;
 //var gameLength = 90;
-var timerSeconds = 90;
+var timerSeconds = process.env.GAME_LENGTH;
 var numTargets = deviceArray.length;
 var gameTimer = new Interval(gameTick, 1000);
 var captureVideo = false;
 var gameOver = false;
 var animateInterval;
+var isRecording = false;
+var gameMode = 0; // RIGHT, LEFT, Random
+var ackCounter = 0;
+var ackTimeout = null;
 
 function generateRandomActiveNext(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -77,27 +93,57 @@ function generateRandomNext(min, max) {
     nextTarget = max;
   }
 }
-generateRandomActiveNext(0, numDevices - 1);
+// generateRandomActiveNext(0, numDevices - 1);
 
 events.addListener("game-reset", function () {
   console.log("resetting game");
   gameScore = 0;
   gameTimer.stop();
   gameOver = false;
-  timerSeconds = 90;
+  timerSeconds = process.env.GAME_LENGTH;
+  gameMode = 0;
+  generateGameColors();
+  sendUDPMessage();
+  if (isRecording) {
+    stopRecording();
+  }
 });
 events.addListener("capture-video", function (message) {
   console.log("Setting Capture Video: ", message);
   captureVideo = message;
+  if (captureVideo) {
+    enableUSB();
+    setResolution();
+    setFramerate();
+  }
 });
 
-function animateColors() {
+function sendUDPMessage(message, port) {
+  try {
+    console.log("Active Target", activeTarget);
+    console.log("Next Target", nextTarget);
+    const responseJson = JSON.stringify({
+      messageType: 1,
+      activeId: deviceArray[activeTarget],
+      nextId: deviceArray[nextTarget],
+    });
+    console.log("Sending: " + responseJson + "to port - " + "4432");
+    //const response = "Hellow there!";
+    udpSocket.setBroadcast(true);
+    udpSocket.send(responseJson, 0, responseJson.length, "4432", ipRange);
+  } catch (e) {
+    console.log(e);
+    // expected output: SyntaxError: Unexpected token o in JSON at position 1
+  }
+}
+function animateColors(maxAnimations, callback) {
   var counter = 0;
   var counterNext = 1;
+  var totalAnimations = 0;
   console.log("Starting Animation");
   animateInterval = setInterval(function () {
     //generateRandomNext(0, numDevices - 1);
-    var animateresponse = JSON.stringify({
+    const animateresponse = JSON.stringify({
       activeId: deviceArray[counter],
       nextId: deviceArray[counterNext],
     });
@@ -113,14 +159,31 @@ function animateColors() {
     console.log("Sending: " + animateresponse + "to port - " + "4432");
     //const response = "Hellow there!";
     udpSocket.setBroadcast(true);
-    udpSocket.send(
-      animateresponse,
-      0,
-      animateresponse.length,
-      "4432",
-      "10.42.0.255"
-    );
+    udpSocket.send(animateresponse, 0, animateresponse.length, "4432", ipRange);
+    totalAnimations++;
+    if (totalAnimations === maxAnimations) {
+      clearInterval(animateInterval);
+      return callback();
+    }
   }, 500);
+}
+function generateGameColors() {
+  switch (gameMode) {
+    case 2:
+      activeTarget = deviceArray[0];
+      generateRandomNext(0, numDevices - 1);
+      break;
+    case 0:
+      activeTarget = 0;
+      nextTarget = 1;
+      targetCounter = 1;
+      break;
+    case 1:
+      activeTarget = 0;
+      nextTarget = numDevices - 1;
+      targetCounter = numDevices - 1;
+      break;
+  }
 }
 
 udpSocket.on("listening", function () {
@@ -151,22 +214,68 @@ udpSocket.on("message", function (message, remote) {
       }
       if (!gameOver) {
         gameScore++;
+        if (gameMode === 0 && gameScore === 6) {
+          targetCounter = numDevices - 1;
+          gameMode = 1;
+        }
+        if (gameMode === 1 && gameScore === 12) {
+          gameMode = 2;
+        }
       }
       var sharedJson = {};
       sharedJson.score = gameScore;
       sharedJson.reactTime = receivedJson.reactTime;
       events.emit("udpSocket-data", sharedJson);
       activeTarget = nextTarget;
-      generateRandomNext(0, numDevices - 1);
+      switch (gameMode) {
+        case 2:
+          generateRandomNext(0, numDevices - 1);
+          break;
+        case 0:
+          targetCounter++;
+          if (targetCounter === numDevices) {
+            targetCounter = 0;
+          }
+          nextTarget = targetCounter;
+          break;
+        case 1:
+          nextTarget = targetCounter;
+          targetCounter--;
+          if (targetCounter === 0) {
+            targetCounter = numDevices - 1;
+          }
+          break;
+      }
     }
-    const response = JSON.stringify({
-      activeId: deviceArray[activeTarget],
-      nextId: deviceArray[nextTarget],
-    });
-    console.log("Sending: " + response + "to port - " + remote.port);
-    //const response = "Hellow there!";
-    udpSocket.setBroadcast(true);
-    udpSocket.send(response, 0, response.length, remote.port, "10.42.0.255");
+    if (receivedJson.ack === 1) {
+      console.log("ACK: ", receivedJson.deviceId);
+      //ackCounter++;
+      if (ackTimeout) {
+        console.log("clearing resend interval");
+        clearInterval(ackTimeout);
+        ackTimeout = null;
+      }
+    } else {
+      sendUDPMessage();
+      if (ackTimeout === null) {
+        console.log("setting resend interval")
+        ackTimeout = setInterval(function () {
+          // if(ackCounter<2){
+          console.log("Not enough ACKs");
+          sendUDPMessage();
+          // }
+        }, 500);
+      }
+    }
+
+    // const response = JSON.stringify({
+    //   activeId: deviceArray[activeTarget],
+    //   nextId: deviceArray[nextTarget],
+    // });
+    // console.log("Sending: " + response + "to port - " + remote.port);
+    // //const response = "Hellow there!";
+    // udpSocket.setBroadcast(true);
+    // udpSocket.send(response, 0, response.length, remote.port, ipRange);
   } catch (e) {
     console.log(e);
     // expected output: SyntaxError: Unexpected token o in JSON at position 1
@@ -181,6 +290,27 @@ udpSocket.on("message", function (message, remote) {
 // });
 
 udpSocket.bind("4321");
+udpSocket.on("listening", function () {
+  //sendUDPMessage();
+  console.log("Listeneing");
+  // animateColors(6, function () {
+  //   setTimeout(function () {
+  //     generateGameColors();
+  //     sendUDPMessage();
+  //   }, 1000);
+  // });
+  setTimeout(function () {
+    generateGameColors();
+    sendUDPMessage();
+  }, 1000);
+  // generateGameColors();
+  // sendUDPMessage();
+  // setTimeout(function(){
+  //   clearInterval(animateInterval);
+  // },15000)
+});
+
+//
 
 function gameTick() {
   if (timerSeconds === 0) {
@@ -189,25 +319,24 @@ function gameTick() {
     // });
     gameTimer.stop();
     gameOver = true;
-    animateColors();
-    setTimeout(function () {
-      clearInterval(animateInterval);
-      const response = JSON.stringify({
-        activeId: deviceArray[activeTarget],
-        nextId: deviceArray[nextTarget],
-      });
-      console.log("Sending: " + response + "to port - " + "4432");
-      udpSocket.setBroadcast(true);
-      udpSocket.send(response, 0, response.length, "4432", "10.42.0.255");
-    }, 5000);
+    //animateColors();
+    // setTimeout(function () {
+    //   clearInterval(animateInterval);
+    //   const response = JSON.stringify({
+    //     activeId: deviceArray[activeTarget],
+    //     nextId: deviceArray[nextTarget],
+    //   });
+    //   console.log("Sending: " + response + "to port - " + "4432");
+    //   udpSocket.setBroadcast(true);
+    //   udpSocket.send(response, 0, response.length, "4432", "10.42.0.255");
+    // }, 5000);
   } else {
     timerSeconds--;
   }
   if (captureVideo) {
-    if (timerSeconds == 5) {
-      enableUSB();
-      setResolution();
-      setFramerate();
+    var startVideoSeconds = process.env.VIDEO_LENGTH / 1000 - 5;
+    if (timerSeconds <= startVideoSeconds && timerSeconds > 0 && !isRecording) {
+      isRecording = true;
       startRecording(function () {
         console.log("recording started");
         setTimeout(() => {
@@ -215,7 +344,9 @@ function gameTick() {
             setTimeout(() => {
               getLastCaptureName(function (fileData) {
                 downloadFile(fileData, function (video) {
+                  events.emit("video-status", "video uploading");
                   uploadFile(video);
+                  isRecording = false;
                   //addTextOverlay(video, "Cool Text Overlay");
                 });
               });
@@ -259,7 +390,9 @@ function enableUSB() {
   };
 
   request(options, function (error, response, body) {
-    if (error) throw new Error(error);
+    if (error) {
+      console.log("Enable USB Error: ", error);
+    }
 
     console.log("enableUSB" + body);
   });
@@ -274,7 +407,9 @@ function setFramerate() {
   };
 
   request(options, function (error, response, body) {
-    if (error) throw new Error(error);
+    if (error) {
+      console.log("Framerate Error: ", error);
+    }
 
     console.log("setFramerate" + body);
   });
@@ -288,7 +423,9 @@ function setResolution() {
   };
 
   request(options, function (error, response, body) {
-    if (error) throw new Error(error);
+    if (error) {
+      console.log("Set Resolution Error: ", error);
+    }
 
     console.log("setResolution" + body);
   });
@@ -300,7 +437,9 @@ function startRecording(callback) {
   };
 
   request(options, function (error, response, body) {
-    if (error) throw new Error(error);
+    if (error) {
+      console.log("Start Recording Error: ", error);
+    }
 
     console.log("startRecording" + body);
     //startTime = Date.now();
@@ -314,11 +453,15 @@ function stopRecording(callback) {
   };
 
   request(options, function (error, response, body) {
-    if (error) throw new Error(error);
+    if (error) {
+      console.log("Stop Recording Error: ", error);
+    }
 
     console.log("stopRecoring" + body);
     //console.log(Date.now() - startTime);
-    return callback();
+    if (callback) {
+      return callback();
+    }
   });
 }
 function getLastCaptureName(callback) {
@@ -328,7 +471,9 @@ function getLastCaptureName(callback) {
   };
 
   request(options, function (error, response, body) {
-    if (error) throw new Error(error);
+    if (error) {
+      console.log("Get Last Capture Error: ", error);
+    }
     var obj = JSON.parse(body);
     console.log(obj.folder);
     return callback(obj);
@@ -362,6 +507,11 @@ function downloadFile(fileData, callback) {
       });
     }
   );
+  request.on("error", function (error) {
+    //if (error) {
+    console.log("Download File Error: ", error);
+    //}
+  });
 }
 function addWatermark(image, video) {
   try {
@@ -465,39 +615,81 @@ function uploadFile(filename) {
     .then((resultToken) => {
       console.log("Have DB Key - upload starting");
       var uploadPath = "/Upload/touchpass_" + Date.now() + ".mp4";
-      fs.readFile(filename, function (err, data) {
-        const req = https.request(
-          "https://content.dropboxapi.com/2/files/upload",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ` + resultToken,
-              "Dropbox-API-Arg": JSON.stringify({
-                path: uploadPath,
-                mode: "overwrite",
-                autorename: true,
-                mute: false,
-                strict_conflict: false,
-              }),
-              "Content-Type": "application/octet-stream",
-            },
+      var stats = fs.statSync(filename);
+      var fileSizeInBytes = stats.size;
+      var bytes = 0;
+      var readStream = fs.createReadStream(filename);
+      //fs.readFile(filename, function (err, data) {
+      const req = https.request(
+        "https://content.dropboxapi.com/2/files/upload",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ` + resultToken,
+            "Dropbox-API-Arg": JSON.stringify({
+              path: uploadPath,
+              mode: "overwrite",
+              autorename: true,
+              mute: false,
+              strict_conflict: false,
+            }),
+            "Content-Type": "application/octet-stream",
           },
-          (res) => {
-            console.log("statusCode: ", res.statusCode);
-            if (res.statusCode === 200) {
-              createSharedURL(resultToken, uploadPath);
-            }
-            console.log("headers: ", res.headers);
-
-            res.on("data", function (d) {
-              process.stdout.write(d);
-            });
+        },
+        (res) => {
+          console.log("statusCode: ", res.statusCode);
+          if (res.statusCode === 200) {
+            createSharedURL(resultToken, uploadPath);
           }
-        );
+          console.log("headers: ", res.headers);
 
-        req.write(data);
-        req.end();
+          res.on("data", function (d) {
+            process.stdout.write(d);
+          });
+        }
+      );
+      // req.req.socket.on("drain", function () {
+      //   console.log(req.socket.bytesWritten);
+      // });
+      // req.on("drain", function () {
+      //   var percent = req.req.socket.bytesWritten / fileSizeInBytes;
+      //   events.emit("video-status", percent);
+      //   console.log(
+      //     "percent: " + percent + " bytes: " + req.req.socket.bytesWritten
+      //   );
+      // });
+      // Handle any errors while reading
+      readStream.on("error", (err) => {
+        // handle error
+        // File could not be read
+        //return cb(err);
       });
+
+      // Listen for data
+      readStream.on("data", (chunk) => {
+        //chunks.push(chunk);
+        //console.log((bytes += chunk.length), fileSizeInBytes);
+        req.write(chunk, function (error) {
+          bytes += chunk.length;
+          var percent = Math.round((bytes / fileSizeInBytes) * 100);
+          //console.log("write callback");
+          events.emit("video-status", percent);
+        });
+      });
+
+      // File is done being read
+      readStream.on("close", () => {
+        // Create a buffer of the image from the stream
+        req.end();
+        //return cb(null, Buffer.concat(chunks));
+      });
+
+      // req.on("error", function (error) {
+      //   //if (error) {
+      //   console.log("File Upload Error: ", error);
+      //   //}
+      // });
+      //}); // old FS
     })
     .catch((error) => {
       const { message } = error;
@@ -546,6 +738,12 @@ function createSharedURL(token, filePath) {
   });
   req.write(data);
   req.end();
+
+  req.on("error", function (error) {
+    //if (error) {
+    console.log("Shared URL Error: ", error);
+    //}
+  });
 }
 
 // var i = new Interval(fncName, 1000);

@@ -37,6 +37,11 @@ event.on("share-url", function (data) {
   io.emit("shareURL", data);
 });
 
+event.on("video-status", function (data) {
+  //console.log("data: " + JSON.stringify(data));
+  io.emit("videoStatus", data);
+});
+
 event.on("udpSocket-data", function (data) {
   //console.log("data: " + JSON.stringify(data));
   io.emit("data", JSON.stringify(data));

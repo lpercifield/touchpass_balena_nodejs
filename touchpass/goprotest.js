@@ -17,9 +17,8 @@ const request = require("request");
 const http = require("http"); // or 'https' for https:// URLs
 const https = require("https");
 const fs = require("fs");
-//var ffmpeg = require("ffmpeg");
 var ffmpeg = require("fluent-ffmpeg");
-var startTime;
+
 
 //createNewWatermark();
 enableUSB();

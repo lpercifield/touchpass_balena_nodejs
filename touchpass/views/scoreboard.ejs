@@ -71,6 +71,42 @@
         width: 200px;
         height: 100px;
       }
+      .loader {
+        border: 16px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 16px solid #3498db;
+        margin-top: 15px;
+        width: 300px;
+        height: 300px;
+        position: absolute;
+        margin-left: auto;
+        margin-right: auto;
+        left: 0;
+        right: 0;
+        text-align: center;
+        display: none;
+        -webkit-animation: spin 2s linear infinite; /* Safari */
+        animation: spin 2s linear infinite;
+        background-color: #000000;
+      }
+      /* Safari */
+      @-webkit-keyframes spin {
+        0% {
+          -webkit-transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+        }
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
 
@@ -79,15 +115,36 @@
       <div
         id="qrcode"
         style="
-          width: 600px;
-          height: 600px;
+          width: 300px;
+          height: 300px;
           margin-top: 15px;
           position: absolute;
-          top: 0;
+          margin-left: auto;
+          margin-right: auto;
           left: 0;
+          right: 0;
+          text-align: center;
           display: none;
         "
       ></div>
+      <div class="loader" id="loader"></div>
+      <div
+        class="team"
+        id="percent"
+        style="
+          position: absolute;
+          margin-left: auto;
+          margin-right: auto;
+          left: 0;
+          right: 0;
+          text-align: center;
+          margin-top: 150px;
+          display: none;
+        "
+      >
+        UPLOADING: 0%
+      </div>
+
       <div class="timer" id="timer">01:30</div>
 
       <div class="team">SCORE</div>
@@ -122,13 +179,13 @@
       var lastScore = 0;
       var highScore = 0;
       const socket = io();
+      //text: "https://www.dropbox.com/scl/fi/rf1tk2b4trj5ut93fruy7/touchpass_1726079736203.mp4?rlkey=aq3jwxfus6crdegqi3v4777z3&dl=0",
       var qrcode = new QRCode(document.getElementById("qrcode"), {
         text: "https://www.dropbox.com/scl/fi/rf1tk2b4trj5ut93fruy7/touchpass_1726079736203.mp4?rlkey=aq3jwxfus6crdegqi3v4777z3&dl=0",
-        width: 600,
-        height: 600,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H,
+        width: 300,
+        height: 300,
+        colorDark: "#ffffff",
+        colorLight: "#000000",
       });
 
       function makeCode(url) {
@@ -163,7 +220,21 @@
         });
         socket.on("shareURL", (value) => {
           console.log("share URL", value);
+          document.getElementById("loader").style.display = "none";
+          document.getElementById("percent").style.display = "none";
           makeCode(value);
+          //resetGame(false);
+        });
+        socket.on("videoStatus", (value) => {
+          console.log("Video Status", value);
+          if (value == "video uploading") {
+            document.getElementById("loader").style.display = "block";
+            document.getElementById("percent").style.display = "block";
+          } else {
+            document.getElementById("percent").innerText =
+              "UPLOADING: " + value+"%";
+          }
+          //makeCode(value);
           //resetGame(false);
         });
       }
@@ -217,6 +288,7 @@
           const seconds = (timerSeconds % 60).toString().padStart(2, "0");
           document.getElementById("timer").innerText = `${minutes}:${seconds}`;
           document.getElementById("qrcode").style.display = "none";
+          document.getElementById("loader").style.display = "none";
         }
         if (sendSocket) {
           socket.emit("game-reset");
@@ -229,6 +301,11 @@
           .padStart(2, "0");
         const seconds = (timerSeconds % 60).toString().padStart(2, "0");
         document.getElementById("timer").innerText = `${minutes}:${seconds}`;
+        if (timerSeconds === 0) {
+          console.log("play audio");
+          var audio = new Audio("/audio/whistle.mp3");
+          audio.play();
+        }
 
         // if (timerSeconds === 0) {
         //   // fetch("/scoreboard/reset", {
@@ -239,7 +316,16 @@
         //   timerSeconds--;
         // }
       }
-
+      // var context = new AudioContext();
+      // var oscillator = context.createOscillator();
+      // oscillator.type = "sine";
+      // oscillator.frequency.value = 800;
+      // oscillator.connect(context.destination);
+      // oscillator.start();
+      // // Beep for 500 milliseconds
+      // setTimeout(function () {
+      //     oscillator.stop();
+      // }, 100);
       function toggleTimer() {
         // if (timerInterval) {
         //   clearInterval(timerInterval);
