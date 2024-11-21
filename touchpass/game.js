@@ -30,8 +30,15 @@ const ipRange = process.env.BROADCAST_ADDRESS;
 //sudo ln -sf ./cypress/cyfmac43455-sdio-minimal.bin brcmfmac43455-sdio.bin
 //brcmfmac43455-sdio.bin -> ../cypress/cyfmac43455-sdio.bin
 
+/*
+https://forums.balena.io/t/how-can-i-configure-tp-link-wifi-adapter/65176/9
+https://docs.balena.io/learn/develop/multicontainer/#labels
+*/
+
 //order: 5880456,5775764,5880508,5882560,5878116,5880848
 //BEACON: 5880456,5880848,5878116,5882560,5880508,5775764
+//RENO: 5875620,5807792,5867696,5799664,5806000,5800040 -- 5875620,5807792,5800040
+
 
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
@@ -214,11 +221,11 @@ udpSocket.on("message", function (message, remote) {
       }
       if (!gameOver) {
         gameScore++;
-        if (gameMode === 0 && gameScore === 6) {
+        if (gameMode === 0 && gameScore === numDevices) {
           targetCounter = numDevices - 1;
           gameMode = 1;
         }
-        if (gameMode === 1 && gameScore === 12) {
+        if (gameMode === 1 && gameScore === (numDevices*2)) {
           gameMode = 2;
         }
       }

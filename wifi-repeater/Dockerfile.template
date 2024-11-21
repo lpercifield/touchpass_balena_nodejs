@@ -1,13 +1,14 @@
 # Build stage
-FROM balenalib/%%BALENA_MACHINE_NAME%%-node:12-build as builder
+FROM balenalib/%%BALENA_MACHINE_NAME%%-node:14-bookworm-build as builder
 
 WORKDIR /usr/src
 
-RUN install_packages python
+RUN install_packages python3
 RUN npm install blinking
+#RUN update-alternatives --config cyfmac43455-sdio.bin
 
 # Run stage
-FROM balenalib/%%BALENA_MACHINE_NAME%%-node:12-run
+FROM balenalib/%%BALENA_MACHINE_NAME%%-node:14-run
 ENV DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 
 RUN install_packages dbus wireless-tools wget network-manager
