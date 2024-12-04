@@ -69,7 +69,7 @@ var captureVideo = false;
 var gameOver = false;
 var animateInterval;
 var isRecording = false;
-var gameMode = 0; // RIGHT, LEFT, Random
+var gameMode = 1; // RIGHT, LEFT, Random
 var ackCounter = 0;
 var ackTimeout = null;
 
@@ -221,13 +221,18 @@ udpSocket.on("message", function (message, remote) {
       }
       if (!gameOver) {
         gameScore++;
-        if (gameMode === 0 && gameScore === numDevices) {
-          targetCounter = numDevices - 1;
-          gameMode = 1;
-        }
-        if (gameMode === 1 && gameScore === (numDevices*2)) {
-          gameMode = 2;
-        }
+        // console.log("GameScore: ",gameScore);
+        // if (gameMode === 0 && gameScore === numDevices-1) {
+        //   targetCounter = numDevices - 1;
+        //   gameMode = 1;
+        //   console.log("Game Mode: ",gameMode);
+        //   console.log("targetCounter: ",targetCounter);
+        // }
+        // if (gameMode === 1 && gameScore === (numDevices*2)-1) {
+        //   gameMode = 2;
+        //   console.log("Game Mode: ",gameMode);
+        //   console.log("targetCounter: ",targetCounter);
+        // }
       }
       var sharedJson = {};
       sharedJson.score = gameScore;
@@ -258,14 +263,14 @@ udpSocket.on("message", function (message, remote) {
       console.log("ACK: ", receivedJson.deviceId);
       //ackCounter++;
       if (ackTimeout) {
-        console.log("clearing resend interval");
+        //console.log("clearing resend interval");
         clearInterval(ackTimeout);
         ackTimeout = null;
       }
     } else {
       sendUDPMessage();
       if (ackTimeout === null) {
-        console.log("setting resend interval")
+        //console.log("setting resend interval")
         ackTimeout = setInterval(function () {
           // if(ackCounter<2){
           console.log("Not enough ACKs");
