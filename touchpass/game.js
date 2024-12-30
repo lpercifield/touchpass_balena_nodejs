@@ -13,6 +13,40 @@ const arduino = require("./arduino/updateESP32.js");
 const { log } = require("console");
 //const ipRange = "10.42.0.255";
 const ipRange = process.env.BROADCAST_ADDRESS;
+var HID = require('node-hid');
+var devices = HID.devices();
+
+var nfcBuffs = ''
+var activeUserID = null;
+var buffsCount = 0
+var keymap = {'04':'A','05':'B','06':'C','07':'D','08':'E','09':'F','0a':'G','0b':'H','0c':'I','0d':'J','0e':'K','0f':'L','10':'M','11':'N','12':'O','13':'P','14':'Q','15':'R','16':'S','17':'T','18':'U','19':'V','1a':'W','1b':'X','1c':'Y','1d':'Z','1e':'1','1f':'2','20':'3','21':'4','22':'5','23':'6','24':'7','25':'8','26':'9','27':'0','00':''}
+
+
+try {
+  var reader = new HID.HID(0x413d,0x2107);// PID: 0x2107 VID: 0x413d
+  reader.on("data", function(data) { 
+    buffsCount+=1
+    //console.log("DATA: ",data)
+    var nfcBuf = Buffer.from([data[2]]);
+    if (nfcBuf.toString('hex') == '28') {
+      cardId = nfcBuffs;
+      console.log("CARD ID:",cardId); 
+      users.getUserByCard(cardId,function(userId){
+        console.log(userId);
+        activeUserID = userId;
+      });
+      nfcBuffs = [] // and reset counter/buffer
+      buffsCount = 0
+    } else if (nfcBuf.toString('hex') != '00') {
+      nfcBuffs += keymap[nfcBuf.toString('hex')]
+    }
+  });
+} catch (error) {
+  console.log(error)
+}
+const parser = require('mag-stripe');
+const users = require("./user.js");
+
 
 // import {
 //   getFreshSLAccessTokenFromRefreshToken
@@ -37,7 +71,9 @@ https://docs.balena.io/learn/develop/multicontainer/#labels
 
 //order: 5880456,5775764,5880508,5882560,5878116,5880848
 //BEACON: 5880456,5880848,5878116,5882560,5880508,5775764
-//RENO: 5875620,5807792,5867696,5799664,5806000,5800040 -- 5875620,5807792,5800040
+//RENO: 5875620,5807792,5867696,5799664,5806000,5800040 -- 5875620,5807792,5800040,5806000,5867696,5799664
+
+//5875620,5807792,5800040,5806000,5867696,5799664
 
 
 const message = "Server?";
@@ -56,7 +92,7 @@ const deviceArray = process.env.DEVICE_ARRAY.split(",");
 var numDevices = deviceArray.length;
 var counter = 0;
 console.log(deviceArray.toString());
-
+//console.log(devices);
 var activeTarget = 3;
 var nextTarget = 3;
 var gameScore = 0;
@@ -69,9 +105,11 @@ var captureVideo = false;
 var gameOver = false;
 var animateInterval;
 var isRecording = false;
-var gameMode = 1; // RIGHT, LEFT, Random
+var gameMode = 0; // RIGHT, LEFT, Random
 var ackCounter = 0;
 var ackTimeout = null;
+
+
 
 function generateRandomActiveNext(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -176,16 +214,16 @@ function animateColors(maxAnimations, callback) {
 }
 function generateGameColors() {
   switch (gameMode) {
-    case 2:
+    case 2: // RANDOM
       activeTarget = deviceArray[0];
       generateRandomNext(0, numDevices - 1);
       break;
-    case 0:
+    case 0: // To the RIGHT
       activeTarget = 0;
       nextTarget = 1;
       targetCounter = 1;
       break;
-    case 1:
+    case 1: // To the LEFT
       activeTarget = 0;
       nextTarget = numDevices - 1;
       targetCounter = numDevices - 1;
@@ -221,18 +259,18 @@ udpSocket.on("message", function (message, remote) {
       }
       if (!gameOver) {
         gameScore++;
-        // console.log("GameScore: ",gameScore);
-        // if (gameMode === 0 && gameScore === numDevices-1) {
-        //   targetCounter = numDevices - 1;
-        //   gameMode = 1;
-        //   console.log("Game Mode: ",gameMode);
-        //   console.log("targetCounter: ",targetCounter);
-        // }
-        // if (gameMode === 1 && gameScore === (numDevices*2)-1) {
-        //   gameMode = 2;
-        //   console.log("Game Mode: ",gameMode);
-        //   console.log("targetCounter: ",targetCounter);
-        // }
+        console.log("GameScore: ",gameScore);
+        if (gameMode === 0 && gameScore === numDevices-1) {
+          targetCounter = numDevices - 1;
+          gameMode = 1;
+          console.log("Game Mode: ",gameMode);
+          console.log("targetCounter: ",targetCounter);
+        }
+        if (gameMode === 1 && gameScore === (numDevices*2)-1) {
+          gameMode = 2;
+          console.log("Game Mode: ",gameMode);
+          console.log("targetCounter: ",targetCounter);
+        }
       }
       var sharedJson = {};
       sharedJson.score = gameScore;
@@ -251,11 +289,11 @@ udpSocket.on("message", function (message, remote) {
           nextTarget = targetCounter;
           break;
         case 1:
-          nextTarget = targetCounter;
           targetCounter--;
-          if (targetCounter === 0) {
+          if (targetCounter < 0) {
             targetCounter = numDevices - 1;
           }
+          nextTarget = targetCounter;
           break;
       }
     }

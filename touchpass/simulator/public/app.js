@@ -26,14 +26,14 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const socket = io();
-  const numTargets = 1;
 
   const buttonsContainer = document.getElementById("buttons-container");
 
   let buttons = document.querySelectorAll(".button");
-  const deviceArray = [
-    13456292, 5867696, 13505620, 13475596, 13455872, 13458656,
-  ];
+
+  const deviceArray = process.env.DEVICE_ARRAY.split(",");
+  let numTargets = deviceArray.length;
+
 
   for (let i = 1; i <= (numTargets+1); i++) {
     const button = document.createElement("div");
