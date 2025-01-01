@@ -72,6 +72,15 @@ function getUserByCard(cardId,callback){
         callback(jsonData);
     });
   }
+  function addUser(cardId,callback){
+    //var userObj = null;
+    var payload = {};
+    payload.credits = 10;
+    payload.metadata = {"cardId":cardId}
+    var jsonData = postAction("addUser",payload,function(jsonData){
+        callback(jsonData);
+    });
+  }
 
   function addGame(payload,callback){
     //var userObj = null;
@@ -81,4 +90,4 @@ function getUserByCard(cardId,callback){
         callback(jsonData);
     });
   }
-  module.exports = { getUserByCard, getHighScore,getUserHighScore,addGame };
+  module.exports = { getUserByCard, getHighScore,getUserHighScore,addGame,addUser };

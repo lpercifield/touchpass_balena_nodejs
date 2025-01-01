@@ -239,8 +239,9 @@
         timerSeconds = value;
         updateTimer();
       });
-      socket.on("gameReset", (value) => {
+      socket.on("gameReset", (value,time) => {
         console.log("Resetting Game");
+        timerSeconds = time;
         resetGame(false);
       });
       socket.on("shareURL", (value) => {
@@ -258,13 +259,18 @@
       });
       socket.on("userScoreData", (value) => {
         console.log("user score data", value);
-        const date = new Date(value[0].Timestamp);
+        if(value.length > 0){
+          const date = new Date(value[0].Timestamp);
         const month   = date.getUTCMonth() + 1; // months from 1-12
         const day     = date.getUTCDate();
         const year    = date.getUTCFullYear();
         const newDate = month + "/" + day + "/" + year;
 
         document.getElementById("userHighScore").innerText ="USER HIGH SCORE: " + value[0].Score + " - "+ newDate;
+        }else{
+          document.getElementById("userHighScore").innerText ="USER HIGH SCORE: 0";
+        }
+
         //makeCode(value);
         //resetGame(false);
       });
@@ -336,7 +342,7 @@
         // }
         teamAScore = 0;
         document.getElementById("teamAScore").innerText = teamAScore;
-        timerSeconds = 90;
+        //timerSeconds = 90;
         const minutes = Math.floor(timerSeconds / 60)
           .toString()
           .padStart(2, "0");

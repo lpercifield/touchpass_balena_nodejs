@@ -143,11 +143,19 @@ function getUserData(card){
       })
     }else{
       console.log("NO USER FOUND")
+      createUser(card);
     }
 
   });
 }
 
+function createUser(card){
+  users.addUser(card,function(data){
+    if(data){
+      getUserData(card);
+    }
+  })
+}
 
 function generateRandomActiveNext(min, max) {
   //var num = Math.floor(Math.random() * (max - min + 1)) + min;

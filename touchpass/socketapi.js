@@ -39,7 +39,7 @@ event.on("user-data", function (data) {
 
 event.on("game-reset", function (data) {
   //console.log("data: " + JSON.stringify(data));
-  io.emit("gameReset", true);
+  io.emit("gameReset", true,process.env.GAME_LENGTH);
 });
 
 event.on("user-score-data", function (data) {
