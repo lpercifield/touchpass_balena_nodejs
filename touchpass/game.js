@@ -97,6 +97,7 @@ var activeTarget = 3;
 var nextTarget = 3;
 var gameScore = 0;
 var targetCounter = 0;
+var reactionTimes = [];
 //var gameLength = 90;
 var timerSeconds = process.env.GAME_LENGTH;
 var numTargets = deviceArray.length;
@@ -192,6 +193,7 @@ events.addListener("game-reset", function () {
   gameTimer.stop();
   gameOver = false;
   timerSeconds = process.env.GAME_LENGTH;
+  reactionTimes = [];
   gameMode = 0;
   generateGameColors();
   sendUDPMessage();
@@ -304,6 +306,7 @@ udpSocket.on("message", function (message, remote) {
     // console.log(receivedJson.result);
     // expected output: true
     if (receivedJson.goal === 1) {
+      reactionTimes.push(receivedJson.reactTime);
       if (!gameTimer.isRunning()) {
         gameTimer.start();
       }
@@ -424,8 +427,8 @@ function gameTick() {
     gameObj.locationID = "1";
     gameObj.gameName = numDevices.toString();
     gameObj.duration = process.env.GAME_LENGTH;
-    gameObj.device = 1;
-    gameObj.metadata = {"data":"test"};
+    gameObj.device = process.env.BALENA_DEVICE_NAME_AT_INIT;
+    gameObj.metadata = {"reactionTimes":reactionTimes}; //{"data":"test"}
     gameObj.score = gameScore*-1;
     console.log(gameObj)
     users.addGame(gameObj,function(data){
