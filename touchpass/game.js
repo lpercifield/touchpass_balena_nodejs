@@ -17,7 +17,7 @@ var HID = require('node-hid');
 var devices = HID.devices();
 
 var nfcBuffs = ''
-var activeUserID = null;
+var activeUser = null;
 var buffsCount = 0
 var keymap = {'04':'A','05':'B','06':'C','07':'D','08':'E','09':'F','0a':'G','0b':'H','0c':'I','0d':'J','0e':'K','0f':'L','10':'M','11':'N','12':'O','13':'P','14':'Q','15':'R','16':'S','17':'T','18':'U','19':'V','1a':'W','1b':'X','1c':'Y','1d':'Z','1e':'1','1f':'2','20':'3','21':'4','22':'5','23':'6','24':'7','25':'8','26':'9','27':'0','00':''}
 
@@ -31,10 +31,7 @@ try {
     if (nfcBuf.toString('hex') == '28') {
       cardId = nfcBuffs;
       console.log("CARD ID:",cardId); 
-      users.getUserByCard(cardId,function(userId){
-        console.log(userId);
-        activeUserID = userId;
-      });
+      getUserData(cardId);
       nfcBuffs = [] // and reset counter/buffer
       buffsCount = 0
     } else if (nfcBuf.toString('hex') != '00') {
@@ -60,7 +57,7 @@ const users = require("./user.js");
 //5882560, 5880508, 5775764, 5880848, 5880456, 5878116;
 
 //{"activeId":"5880848","nextId":"5880508"}
-//{"deviceId":5867695,"goal":1,"reactTime":0}
+//{"deviceId":5867695,"goal":1,"reactTime":0} {"deviceId":5875620,"goal":1,"reactTime":0}
 //sudo ln -sf ./cypress/cyfmac43455-sdio-minimal.bin brcmfmac43455-sdio.bin
 //brcmfmac43455-sdio.bin -> ../cypress/cyfmac43455-sdio.bin
 
@@ -89,6 +86,9 @@ const deviceArray = process.env.DEVICE_ARRAY.split(",");
 //   { activeId: 5867696, nextId: 13456292 },
 // ];
 
+
+//{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
+
 var numDevices = deviceArray.length;
 var counter = 0;
 console.log(deviceArray.toString());
@@ -109,6 +109,44 @@ var gameMode = 0; // RIGHT, LEFT, Random
 var ackCounter = 0;
 var ackTimeout = null;
 
+// users.getHighScore(function(data){
+//   console.log(data)
+//   events.emit("score-data", data);
+// })
+
+var isDarwin = process.platform === "darwin";
+if(isDarwin){
+process.stdin.resume();
+
+process.stdin.on('data', (data) => {
+  const input = data.toString().trim();
+  //console.log('You entered:', input);
+  console.log("CARD ID:",input); 
+  getUserData(input);
+
+});
+
+console.log('Enter some text and press Enter:');
+
+}
+
+function getUserData(card){
+  users.getUserByCard(card,function(userId){
+    if(userId != null){
+      console.log(userId.UserID);
+      activeUser = userId;
+      events.emit("user-data", userId);
+      users.getUserHighScore(userId.UserID,function(scores){
+        //console.log(scores);
+        events.emit("user-score-data", scores);
+        events.emit("game-reset");
+      })
+    }else{
+      console.log("NO USER FOUND")
+    }
+
+  });
+}
 
 
 function generateRandomActiveNext(min, max) {
@@ -152,6 +190,10 @@ events.addListener("game-reset", function () {
   if (isRecording) {
     stopRecording();
   }
+  users.getHighScore(function(data){
+    //console.log(data)
+    events.emit("score-data", data);
+  })
 });
 events.addListener("capture-video", function (message) {
   console.log("Setting Capture Video: ", message);
@@ -369,6 +411,18 @@ function gameTick() {
     // });
     gameTimer.stop();
     gameOver = true;
+    var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
+    gameObj.userID = activeUser.UserID;
+    gameObj.locationID = "1";
+    gameObj.gameName = numDevices.toString();
+    gameObj.duration = process.env.GAME_LENGTH;
+    gameObj.device = 1;
+    gameObj.metadata = {"data":"test"};
+    gameObj.score = gameScore*-1;
+    console.log(gameObj)
+    users.addGame(gameObj,function(data){
+      console.log(data);
+    })
     //animateColors();
     // setTimeout(function () {
     //   clearInterval(animateInterval);

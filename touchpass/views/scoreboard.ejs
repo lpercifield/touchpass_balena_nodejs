@@ -25,7 +25,7 @@
       padding: 20px;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
       margin: auto;
-      max-width: 600px;
+      /* max-width: 600px; */
     }
 
     .team {
@@ -37,7 +37,7 @@
     }
 
     .score {
-      font-size: 500px;
+      font-size: 570px;
       margin-bottom: 20px;
       letter-spacing: 6px;
       text-shadow: 0 0 50px rgba(255, 0, 0, 0.7);
@@ -148,7 +148,9 @@
 
     <div class="team">SCORE</div>
     <div class="score" id="teamAScore">0</div>
-    <div class="team" id="lastScore">LAST SCORE: 0</div>
+    <div class="team" id="userName">USER NAME</div>
+    <div class="team" id="lastScore">LAST GAME SCORE: 0</div>
+    <div class="team" id="userHighScore">USER HIGH SCORE: 0</div>
     <div class="team" id="highScore">HIGH SCORE: 0</div>
 
     <div class="separator"></div>
@@ -248,6 +250,36 @@
         makeCode(value);
         //resetGame(false);
       });
+      socket.on("userData", (value) => {
+        console.log("user data", value);
+        document.getElementById("userName").innerText ="USER: " + value.UserName;
+        //makeCode(value);
+        //resetGame(false);
+      });
+      socket.on("userScoreData", (value) => {
+        console.log("user score data", value);
+        const date = new Date(value[0].Timestamp);
+        const month   = date.getUTCMonth() + 1; // months from 1-12
+        const day     = date.getUTCDate();
+        const year    = date.getUTCFullYear();
+        const newDate = month + "/" + day + "/" + year;
+
+        document.getElementById("userHighScore").innerText ="USER HIGH SCORE: " + value[0].Score + " - "+ newDate;
+        //makeCode(value);
+        //resetGame(false);
+      });
+      socket.on("scoreData", (value) => {
+        console.log("score data", value);
+        const date = new Date(value[0].Timestamp);
+        const month   = date.getUTCMonth() + 1; // months from 1-12
+        const day     = date.getUTCDate();
+        const year    = date.getUTCFullYear();
+        const newDate = month + "/" + day + "/" + year;
+
+        document.getElementById("highScore").innerText ="HIGH SCORE: " + value[0].Score + " - "+ newDate;
+        //makeCode(value);
+        //resetGame(false);
+      });
       socket.on("videoStatus", (value) => {
         console.log("Video Status", value);
         if (value == "video uploading") {
@@ -297,11 +329,11 @@
         lastScore = teamAScore;
         document.getElementById("lastScore").innerText =
           "Last SCORE: " + lastScore;
-        if (highScore < lastScore) {
-          highScore = lastScore;
-          document.getElementById("highScore").innerText =
-            "High SCORE: " + highScore;
-        }
+        // if (highScore < lastScore) {
+        //   highScore = lastScore;
+        //   document.getElementById("highScore").innerText =
+        //     "High SCORE: " + highScore;
+        // }
         teamAScore = 0;
         document.getElementById("teamAScore").innerText = teamAScore;
         timerSeconds = 90;

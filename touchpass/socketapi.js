@@ -12,7 +12,6 @@ io.on("connection", function (socket) {
   socket.on("game-reset", function (message) {
     console.log("reset called");
     event.emit("game-reset");
-    io.emit("gameReset", true);
   });
   socket.on("capture-video", function (message) {
     event.emit("capture-video",message);
@@ -31,6 +30,25 @@ io.on("connection", function (socket) {
 event.on("timer-tick", function (data) {
   //console.log("data: " + JSON.stringify(data));
   io.emit("timerTick", data);
+});
+event.on("user-data", function (data) {
+  //console.log("data: " + JSON.stringify(data));
+  io.emit("userData", data);
+});
+
+
+event.on("game-reset", function (data) {
+  //console.log("data: " + JSON.stringify(data));
+  io.emit("gameReset", true);
+});
+
+event.on("user-score-data", function (data) {
+  //console.log("data: " + JSON.stringify(data));
+  io.emit("userScoreData", data);
+});
+event.on("score-data", function (data) {
+  //console.log("data: " + JSON.stringify(data));
+  io.emit("scoreData", data);
 });
 event.on("share-url", function (data) {
   //console.log("data: " + JSON.stringify(data));
