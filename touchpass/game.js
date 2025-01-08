@@ -201,7 +201,7 @@ events.addListener("game-reset", function () {
     stopRecording();
   }
   users.getHighScore(function(data){
-    //console.log(data)
+    console.log(data)
     events.emit("score-data", data);
   })
 });
@@ -420,11 +420,12 @@ function gameTick() {
     // fetch("/scoreboard/reset", {
     //   method: "GET", // default, so we can ignore
     // });
+    console.log("Active User",activeUser);
     gameTimer.stop();
     gameOver = true;
     var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
     gameObj.userID = activeUser.UserID;
-    gameObj.locationID = "1";
+    gameObj.locationID = process.env.LOCATION;;
     gameObj.gameName = numDevices.toString();
     gameObj.duration = process.env.GAME_LENGTH;
     gameObj.device = process.env.BALENA_DEVICE_NAME_AT_INIT;
