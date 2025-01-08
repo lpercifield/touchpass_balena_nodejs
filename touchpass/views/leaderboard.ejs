@@ -322,7 +322,7 @@
                 row.getElementsByClassName("points").innerText;
                 for (var j = 0, col; col = row.cells[j]; j++) {
                     //iterate through columns
-                    if(col.class == "")
+                    //if(col.class == "")
                     //columns would be accessed using the "col" variable assigned in the for loop
                 }
             }
@@ -332,7 +332,7 @@
     }
 
     socket.on("disconnect", function () {
-        document.getElementById("state").innerHTML = "Socket Disconnected";
+        //document.getElementById("state").innerHTML = "Socket Disconnected";
         socket.off("data");
         //socketCleanup(); // this is a function to cleanup all listeners, just in case, so you can restart fresh
         // socket.on("connect", function () {
