@@ -25,6 +25,7 @@
       padding: 20px;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
       margin: auto;
+      height: 100vh;
       /* max-width: 600px; */
     }
 
@@ -93,6 +94,67 @@
       background-color: #000000;
     }
 
+    /* The Modal (background) */
+    .modal {
+      display: none;
+      /* Hidden by default */
+      position: fixed;
+      /* Stay in place */
+      z-index: 1;
+      /* Sit on top */
+      padding-top: 100px;
+      /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%;
+      /* Full width */
+      height: 100%;
+      /* Full height */
+      overflow: auto;
+      /* Enable scroll if needed */
+      background-color: rgb(0, 0, 0);
+      /* Fallback color */
+      background-color: rgba(0, 0, 0, 0.4);
+      /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      height: 40%;
+    }
+
+    /* The Close Button */
+    .close {
+      color: #aaaaaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    label {
+      font-family: sans-serif;
+      font-size: 1rem;
+      padding-right: 10px;
+    }
+
+    select {
+      font-size: 2.9rem;
+      padding: 2px 5px;
+    }
+
+
     /* Safari */
     @-webkit-keyframes spin {
       0% {
@@ -143,6 +205,27 @@
         ">
       UPLOADING: 0%
     </div>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="team">ADD NEW USER</div>
+        <!-- <label for="pet-select">Choose a pet:</label> -->
+
+        <select name="pets" id="pet-select">
+          <option value="">SELECT TEAM</option>
+          <option value="Manchester United">Manchester United</option>
+          <option value="Real Madrid">Real Madrid</option>
+          <option value="FC Barcelona">FC Barcelona</option>
+          <option value="Liverpool">Liverpool</option>
+          <option value="Bayern Munich">Bayern Munich</option>
+          <option value="Manchester City">Manchester City</option>
+        </select>
+      </div>
+
+    </div>
 
     <div class="timer" id="timer">01:30</div>
 
@@ -153,11 +236,11 @@
     <div class="team" id="userHighScore">USER HIGH SCORE: 0</div>
     <div class="team" id="highScore">HIGH SCORE: 0</div>
 
-    <div class="separator"></div>
+    <!-- <div class="separator"></div> -->
 
-    <button onclick="resetGame(true)">Reset</button>
-    <input type="checkbox" id="captureVideo" name="captureVideo" onclick="captueVideoClicked(this);" />
-    <label for="captureVideo">Capture Video</label>
+
+    <!-- <input type="checkbox" id="captureVideo" name="captureVideo" onclick="captueVideoClicked(this);" /> -->
+    <!-- <label for="captureVideo">Capture Video</label> -->
     <!-- <button onclick="toggleTimer()">Start/Stop Timer</button> -->
   </div>
 
@@ -165,6 +248,7 @@
   <h3>Data: <span id="data"></span></h3>
   <button onclick="openFullscreen();">Open Fullscreen</button>
   <button onclick="closeFullscreen();">Close Fullscreen</button>
+  <button onclick="resetGame(true)">Reset</button>
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="/js/jquery.min.js"></script>
@@ -193,6 +277,33 @@
         document.webkitExitFullscreen();
       } else if (document.msExitFullscreen) { /* IE11 */
         document.msExitFullscreen();
+      }
+    }
+  </script>
+
+  <script>
+    var modal = document.getElementById("myModal");
+
+    // Get the button that opens the modal
+    // var btn = document.getElementById("myBtn");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks the button, open the modal 
+    // btn.onclick = function () {
+    //   modal.style.display = "block";
+    // }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
+      modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
       }
     }
   </script>
@@ -239,11 +350,14 @@
         timerSeconds = value;
         updateTimer();
       });
-      socket.on("gameReset", (value,time) => {
+      socket.on("gameReset", (value, time) => {
         console.log("Resetting Game");
         timerSeconds = time;
         resetGame(false);
       });
+      socket.on("new-user", (value) => {
+        modal.style.display = "block";
+      })
       socket.on("shareURL", (value) => {
         console.log("share URL", value);
         document.getElementById("loader").style.display = "none";
@@ -253,24 +367,24 @@
       });
       socket.on("userData", (value) => {
         console.log("user data", value);
-        document.getElementById("userName").innerText ="USER: " + value.UserName;
+        document.getElementById("userName").innerText = "USER: " + value.UserName;
         //makeCode(value);
         //resetGame(false);
       });
       socket.on("userScoreData", (value) => {
         console.log("user score data", value);
-        if(value.length > 0){
-        var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
-        date.setMilliseconds(value[0].Timestamp);
-        //const date = new Date(value[0].Timestamp);
-        const month   = date.getMonth() + 1; // months from 1-12
-        const day     = date.getDate();
-        const year    = date.getFullYear();
-        const newDate = month + "/" + day + "/" + year;
+        if (value.length > 0) {
+          var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
+          date.setMilliseconds(value[0].Timestamp);
+          //const date = new Date(value[0].Timestamp);
+          const month = date.getMonth() + 1; // months from 1-12
+          const day = date.getDate();
+          const year = date.getFullYear();
+          const newDate = month + "/" + day + "/" + year;
 
-        document.getElementById("userHighScore").innerText ="USER HIGH SCORE: " + value[0].Score + " - "+ newDate;
-        }else{
-          document.getElementById("userHighScore").innerText ="USER HIGH SCORE: 0";
+          document.getElementById("userHighScore").innerText = "USER HIGH SCORE: " + value[0].Score + " - " + newDate;
+        } else {
+          document.getElementById("userHighScore").innerText = "USER HIGH SCORE: 0";
         }
 
         //makeCode(value);
@@ -281,12 +395,12 @@
         var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
         date.setMilliseconds(value[0].Timestamp);
         //const date = new Date(value[0].Timestamp);
-        const month   = date.getMonth() + 1; // months from 1-12
-        const day     = date.getDate();
-        const year    = date.getFullYear();
+        const month = date.getMonth() + 1; // months from 1-12
+        const day = date.getDate();
+        const year = date.getFullYear();
         const newDate = month + "/" + day + "/" + year;
 
-        document.getElementById("highScore").innerText ="HIGH SCORE: " + value[0].Score + " - "+ newDate;
+        document.getElementById("highScore").innerText = "HIGH SCORE: " + value[0].Score + " - " + newDate;
         //makeCode(value);
         //resetGame(false);
       });
@@ -337,7 +451,7 @@
         console.log("calling reset");
         //toggleTimer();
         lastScore = teamAScore;
-        console.log("last score",lastScore)
+        console.log("last score", lastScore)
         document.getElementById("lastScore").innerText = "Last SCORE: " + lastScore;
         // if (highScore < lastScore) {
         //   highScore = lastScore;

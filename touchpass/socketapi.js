@@ -38,7 +38,9 @@ event.on("user-data", function (data) {
   //console.log("data: " + JSON.stringify(data));
   io.emit("userData", data);
 });
-
+event.on("new-user",function(data){
+  io.emit("new-user",data);
+})
 
 event.on("game-reset", function (data) {
   //console.log("data: " + JSON.stringify(data));

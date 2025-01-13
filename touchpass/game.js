@@ -144,7 +144,8 @@ function getUserData(card){
       })
     }else{
       console.log("NO USER FOUND")
-      createUser(card);
+      events.emit("new-user",card);
+      //createUser(card);
     }
 
   });
@@ -433,7 +434,8 @@ function gameTick() {
     gameObj.score = gameScore*-1;
     console.log(gameObj)
     users.addGame(gameObj,function(data){
-      console.log(data);
+      //console.log(data);
+      events.emit("refresh-leaderboard",5);
     })
     //animateColors();
     // setTimeout(function () {
