@@ -244,48 +244,49 @@
 <body>
     <main>
         <div id="header">
-            <h1>Ranking</h1>
-            <button class="share">
+            <h1>Ranking: </h1>
+            <h1 id = "gameType">6x60 Game</h1>
+            <!-- <button class="share">
                 <i class="ph ph-share-network"></i>
-            </button>
+            </button> -->
         </div>
         <div id="leaderboard">
             <div class="ribbon"></div>
             <table id="leaderTable">
                 <tr>
                     <td class="number">1</td>
-                    <td class="name">Lee Taeyong</td>
+                    <td class="name">1</td>
                     <td class="points">
-                        258.244 <img class="gold-medal"
+                        5 <img class="gold-medal"
                             src="https://github.com/malunaridev/Challenges-iCodeThis/blob/master/4-leaderboard/assets/gold-medal.png?raw=true"
                             alt="gold medal" />
                     </td>
                 </tr>
                 <tr>
                     <td class="number">2</td>
-                    <td class="name">Mark Lee</td>
-                    <td class="points">258.242</td>
+                    <td class="name">2</td>
+                    <td class="points">4</td>
                 </tr>
                 <tr>
                     <td class="number">3</td>
-                    <td class="name">Xiao Dejun</td>
-                    <td class="points">258.223</td>
+                    <td class="name">3</td>
+                    <td class="points">3</td>
                 </tr>
                 <tr>
                     <td class="number">4</td>
-                    <td class="name">Qian Kun</td>
-                    <td class="points">258.212</td>
+                    <td class="name">4</td>
+                    <td class="points">2</td>
                 </tr>
                 <tr>
                     <td class="number">5</td>
-                    <td class="name">Johnny Suh</td>
-                    <td class="points">258.208</td>
+                    <td class="name">5</td>
+                    <td class="points">1</td>
                 </tr>
             </table>
-            <div id="buttons">
+            <!-- <div id="buttons">
                 <button class="exit">Exit</button>
                 <button class="continue">Continue</button>
-            </div>
+            </div> -->
         </div>
     </main>
 </body>
@@ -302,7 +303,7 @@
         socketConnect();
     });
     function socketConnect() {
-        socket.on("scoreData", (value) => {
+        socket.on("leaderboard-data", (value) => {
             console.log("score data", value);
             var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
             date.setMilliseconds(value[0].Timestamp);
@@ -312,23 +313,39 @@
             const year = date.getFullYear();
             const newDate = month + "/" + day + "/" + year;
 
-            document.getElementById("highScore").innerText = "HIGH SCORE: " + value[0].Score + " - " + newDate;
+            //document.getElementById("highScore").innerText = "HIGH SCORE: " + value[0].Score + " - " + newDate;
             var table = document.getElementById("leaderTable");
+            var medalHTML = '<img class="gold-medal" src="https://github.com/malunaridev/Challenges-iCodeThis/blob/master/4-leaderboard/assets/gold-medal.png?raw=true" alt="gold medal" />'
             for (var i = 0, row; row = table.rows[i]; i++) {
                 //iterate through rows
                 //rows would be accessed using the "row" variable assigned in the for loop
                 //var numberField = row.getElementsByClassName("number");
-                row.getElementsByClassName("name").innerText = 
-                row.getElementsByClassName("points").innerText;
+                console.log(row.getElementsByClassName("name")[0].innerHTML = value[i].name);
+                if(i==0){
+                    console.log(row.getElementsByClassName("points")[0].innerHTML = value[i].Score+medalHTML);
+                }else{
+                    console.log(row.getElementsByClassName("points")[0].innerHTML = value[i].Score);
+                }
+                
+                // row.getElementsByClassName("points").innerText;
                 for (var j = 0, col; col = row.cells[j]; j++) {
                     //iterate through columns
-                    //if(col.class == "")
+                    // console.log(col);
+                    // console.log(col.querySelectorAll( 'td.name' ));
+                    // if(col.class == "name"){
+                    //     col.innerText = value[0].name;
+                    // }
                     //columns would be accessed using the "col" variable assigned in the for loop
                 }
             }
             //makeCode(value);
             //resetGame(false);
         });
+        socket.on("game-reset", (value) => {
+            socket.emit("refresh-leaderboard",5);
+        })
+        socket.emit("refresh-leaderboard",5);
+        console.log("emitted refresh-leaderboard")
     }
 
     socket.on("disconnect", function () {

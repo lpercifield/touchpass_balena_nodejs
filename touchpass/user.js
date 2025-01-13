@@ -68,14 +68,45 @@ function getUserByCard(cardId, callback) {
     });
 }
 
-function getLeaderboardData(callback) {
+function getLeaderboardData(count,callback) {
+    const scorecount = count;
+    console.log("scorecount",scorecount);
+    var leaderboardObj = [];
     getHighScore(function (highScores) {
-        const jsonAsArray = Object.keys(highScores).map(function (key) {
-            return jsonData[key];
+        const scoresArray = Object.keys(highScores).map(function (key) {
+            return highScores[key];
         })
             .sort(function (itemA, itemB) {
                 return itemB.Score - itemA.Score;
             });
+        //console.log("scoresArray",scoresArray);
+        const users = getAction("getAllUsers", function (usersArray) {
+            //console.log("userArray", usersArray);
+            for (let i = 0; i < scorecount; i++) {
+                //console.log("Loop");
+                var found = usersArray.filter(
+                    function(filterdata){ return filterdata.UserID == scoresArray[i].UserID }
+                );
+                // var arrayFound = usersArray.items.filter(function(item) {
+                //     return item.UserID == scoresArray[i].UserID;
+                // });
+                // //usersArray.find(scoresArray[i].UserID);
+                //console.log("arrayFound",found);
+                var userScore = scoresArray[i];
+                userScore.name = found[0].UserName
+                //console.log("userScore",userScore)
+                leaderboardObj.push(userScore)
+                // console.log("leaderboardObj",leaderboardObj)
+
+              }
+              //console.log("leaderboardObj",leaderboardObj)
+              callback(leaderboardObj);
+            // Object.keys(jsonObject).forEach(key => {
+            //     console.log(key + ": " + jsonObject[key]);
+            //   });
+         })
+
+
     })
 }
 
@@ -111,4 +142,4 @@ function addGame(payload, callback) {
         callback(jsonData);
     });
 }
-module.exports = { getUserByCard, getHighScore, getUserHighScore, addGame, addUser };
+module.exports = { getUserByCard, getHighScore, getUserHighScore, addGame, addUser,getLeaderboardData };

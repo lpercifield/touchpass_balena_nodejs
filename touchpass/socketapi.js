@@ -16,6 +16,9 @@ io.on("connection", function (socket) {
   socket.on("capture-video", function (message) {
     event.emit("capture-video",message);
   });
+  socket.on("refresh-leaderboard", function(message){
+    event.emit("refresh-leaderboard",message);
+  });
 });
 // io.on("game-reset", function (socket) {
 //   console.log("reset called");
@@ -46,6 +49,10 @@ event.on("user-score-data", function (data) {
   //console.log("data: " + JSON.stringify(data));
   io.emit("userScoreData", data);
 });
+
+event.on("leaderboard-data", function (data) {
+  io.emit("leaderboard-data", data);
+})
 event.on("score-data", function (data) {
   //console.log("data: " + JSON.stringify(data));
   io.emit("scoreData", data);
