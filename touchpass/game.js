@@ -463,7 +463,7 @@ function gameTick() {
     //   udpSocket.setBroadcast(true);
     //   udpSocket.send(response, 0, response.length, "4432", "10.42.0.255");
     // }, 5000);
-  } else {
+  } else if(!gameOver){
     timerSeconds--;
   }
   if (captureVideo) {
