@@ -154,6 +154,29 @@
       padding: 2px 5px;
     }
 
+    div.int-box {
+      display: flex;
+      align-items: center;
+      /* display: block; */
+      /* vertical-align: middle; */
+      /* text-align: center; */
+      flex-direction: column;
+    }
+
+    div.ext-box {
+      display: table;
+      width: 100%;
+    }
+
+    #jersey {
+      margin-top: 15%;
+    }
+
+    .jersey {
+      font-size: xx-large;
+      width: 50px;
+    }
+
 
     /* Safari */
     @-webkit-keyframes spin {
@@ -213,16 +236,29 @@
         <span class="close">&times;</span>
         <div class="team">ADD NEW USER</div>
         <!-- <label for="pet-select">Choose a pet:</label> -->
+        <div class="ext-box">
+          <div class="int-box">
+            <select name="team" id="team-select" form="userform">
+              <!-- <option value="Manchester United">Manchester United</option>
+            <option value="Real Madrid">Real Madrid</option>
+            <option value="FC Barcelona">FC Barcelona</option>
+            <option value="Liverpool">Liverpool</option>
+            <option value="Bayern Munich">Bayern Munich</option>
+            <option value="Manchester City">Manchester City</option> -->
+            </select>
 
-        <select name="pets" id="pet-select">
-          <option value="">SELECT TEAM</option>
-          <option value="Manchester United">Manchester United</option>
-          <option value="Real Madrid">Real Madrid</option>
-          <option value="FC Barcelona">FC Barcelona</option>
-          <option value="Liverpool">Liverpool</option>
-          <option value="Bayern Munich">Bayern Munich</option>
-          <option value="Manchester City">Manchester City</option>
-        </select>
+            <div class="team" id="jersey">JERSEY NUMBER</div>
+            <input id="jerseyNumber" name="jerseyNumber" class="jersey" type="tel" min="1" max=“99” maxlength="2"
+              pattern="\d*" form="userform" />
+            <form id="userform">
+              <input type="text" hidden="true" name="cardId" id="cardId" />
+              <!-- <input type="submit" style="font-size: xxx-large;margin-top: 10%;">SAVE</input> -->
+              <button id="saveUser" type="submit" style="font-size: xxx-large;margin-top: 10%;">SAVE</button>
+            </form>
+            <!-- <button id="saveUser" onclick="saveUser()" style="font-size: xxx-large;margin-top: 10%;">SAVE</button> -->
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -231,9 +267,9 @@
 
     <div class="team">SCORE</div>
     <div class="score" id="teamAScore">0</div>
-    <div class="team" id="userName">USER NAME</div>
+    <div class="team" id="userName">PLAYER NAME</div>
     <div class="team" id="lastScore">LAST GAME SCORE: 0</div>
-    <div class="team" id="userHighScore">USER HIGH SCORE: 0</div>
+    <div class="team" id="userHighScore">PLAYER HIGH SCORE: 0</div>
     <div class="team" id="highScore">HIGH SCORE: 0</div>
 
     <!-- <div class="separator"></div> -->
@@ -284,16 +320,8 @@
   <script>
     var modal = document.getElementById("myModal");
 
-    // Get the button that opens the modal
-    // var btn = document.getElementById("myBtn");
-
     // Get the <span> element that closes the modal
     var span = document.getElementsByClassName("close")[0];
-
-    // When the user clicks the button, open the modal 
-    // btn.onclick = function () {
-    //   modal.style.display = "block";
-    // }
 
     // When the user clicks on <span> (x), close the modal
     span.onclick = function () {
@@ -329,6 +357,48 @@
       qrcode.makeCode(url);
     }
 
+    function saveUser() {
+      //console.log("FROM SAVE USER")
+    }
+    function processForm(e) {
+      if (e.preventDefault) e.preventDefault();
+      console.log("FROM SAVE USER")
+
+      var formData = new FormData(form);
+      // output as an object
+      console.log(Object.fromEntries(formData));
+      console.log(Object.fromEntries(formData).team);
+      console.log(Object.fromEntries(formData).cardId);
+      console.log(Object.fromEntries(formData).jerseyNumber);
+      socket.emit("save-user", Object.fromEntries(formData));
+      modal.style.display = "none";
+
+
+      // ...or iterate through the name-value pairs
+      // for (var pair of formData.entries()) {
+      //   console.log(pair[0] + ": " + pair[1]);
+      // }
+      /* do what you want with the form */
+
+      // You must return false to prevent the default form behavior
+      return false;
+    }
+
+    var form = document.getElementById('userform');
+    if (form.attachEvent) {
+      form.attachEvent("submit", processForm);
+    } else {
+      form.addEventListener("submit", processForm);
+    }
+    function removeOptions(selectElement) {
+      var i, L = selectElement.options.length - 1;
+      for (i = L; i >= 0; i--) {
+        selectElement.remove(i);
+      }
+    }
+
+
+
     //makeCode();
 
     // connection
@@ -356,6 +426,18 @@
         resetGame(false);
       });
       socket.on("new-user", (value) => {
+        //var valueObj = JSON.parse(value);
+        console.log(value);
+        let selectTag = document.getElementById('team-select');
+        // using the function:
+        removeOptions(selectTag);
+        document.getElementById('cardId').value = value.card;
+        value.teams.map((team, i) => {
+          let opt = document.createElement("option");
+          opt.value = team; // the index
+          opt.innerHTML = team;
+          selectTag.append(opt);
+        });
         modal.style.display = "block";
       })
       socket.on("shareURL", (value) => {
@@ -367,13 +449,13 @@
       });
       socket.on("userData", (value) => {
         console.log("user data", value);
-        document.getElementById("userName").innerText = "USER: " + value.UserName;
+        document.getElementById("userName").innerText = "PLAYER: " + value.UserName;
         //makeCode(value);
         //resetGame(false);
       });
       socket.on("userScoreData", (value) => {
         console.log("user score data", value);
-        if (value.length > 0) {
+        if (value[0] != "Error querying games by user and score") {
           var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
           date.setMilliseconds(value[0].Timestamp);
           //const date = new Date(value[0].Timestamp);
@@ -382,9 +464,9 @@
           const year = date.getFullYear();
           const newDate = month + "/" + day + "/" + year;
 
-          document.getElementById("userHighScore").innerText = "USER HIGH SCORE: " + value[0].Score + " - " + newDate;
+          document.getElementById("userHighScore").innerText = "PLAYER HIGH SCORE: " + value[0].Score + " - " + newDate;
         } else {
-          document.getElementById("userHighScore").innerText = "USER HIGH SCORE: 0";
+          document.getElementById("userHighScore").innerText = "PLAYER HIGH SCORE: 0";
         }
 
         //makeCode(value);

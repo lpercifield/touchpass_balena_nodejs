@@ -77,6 +77,8 @@ const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
 //const deviceArray = [13456292, 5806000, 5800040];
 const deviceArray = process.env.DEVICE_ARRAY.split(",");
+
+const teamsArray = process.env.TEAM_ARRAY.split(",");
 // const jsonArray = [
 //   { activeId: 13456292, nextId: 5867696 },
 //   { activeId: 5867696, nextId: 13456292 },
@@ -132,29 +134,37 @@ console.log('Enter some text and press Enter:');
 }
 
 function getUserData(card){
-  users.getUserByCard(card,function(userId){
-    if(userId != null){
-      console.log(userId.UserID);
-      activeUser = userId;
-      events.emit("user-data", userId);
-      users.getUserHighScore(userId.UserID,function(scores){
+  users.getUserByCard(card,function(usersFound){
+    console.log("usersFound",usersFound.foundUser);
+    if(usersFound.foundUser != null){
+      console.log(usersFound.UserID);
+      activeUser = usersFound.foundUser;
+      events.emit("user-data", activeUser);
+      users.getUserHighScore(usersFound.UserID,function(scores){
         //console.log(scores);
         events.emit("user-score-data", scores);
         events.emit("game-reset");
       })
     }else{
       console.log("NO USER FOUND")
-      events.emit("new-user",card);
+      var newUserObj = {}
+      newUserObj.card = card
+      newUserObj.teams = teamsArray;
+      console.log(newUserObj);
+      // Object.keys(jsonData).forEach(function (key) {
+
+      // })
+      events.emit("new-user",newUserObj);
       //createUser(card);
     }
 
   });
 }
 
-function createUser(card){
-  users.addUser(card,function(data){
+function createUser(message){
+  users.addUser(message,function(data){
     if(data){
-      getUserData(card);
+      getUserData(message.cardId);
     }
   })
 }
@@ -188,6 +198,10 @@ function generateRandomNext(min, max) {
 }
 // generateRandomActiveNext(0, numDevices - 1);
 
+events.addListener("save-user", function (message) {
+  createUser(message);
+})
+
 events.addListener("game-reset", function () {
   console.log("resetting game");
   gameScore = 0;
@@ -202,7 +216,7 @@ events.addListener("game-reset", function () {
     stopRecording();
   }
   users.getHighScore(function(data){
-    console.log(data)
+    //console.log(data)
     events.emit("score-data", data);
   })
 });

@@ -19,6 +19,9 @@ io.on("connection", function (socket) {
   socket.on("refresh-leaderboard", function(message){
     event.emit("refresh-leaderboard",message);
   });
+  socket.on("save-user",function(message){
+    event.emit("save-user",message);
+  })
 });
 // io.on("game-reset", function (socket) {
 //   console.log("reset called");
