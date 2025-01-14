@@ -465,6 +465,7 @@ function gameTick() {
     // }, 5000);
   } else if(!gameOver){
     timerSeconds--;
+    events.emit("timer-tick", timerSeconds);
   }
   if (captureVideo) {
     var startVideoSeconds = process.env.VIDEO_LENGTH / 1000 - 5;
@@ -491,7 +492,7 @@ function gameTick() {
   }
 
   //"timer-tick";
-  events.emit("timer-tick", timerSeconds);
+ 
 }
 
 function Interval(fn, time) {
