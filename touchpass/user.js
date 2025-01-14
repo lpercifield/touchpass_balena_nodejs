@@ -104,24 +104,37 @@ function getLeaderboardData(count, callback) {
             .sort(function (itemA, itemB) {
                 return itemB.Score - itemA.Score;
             });
-        //console.log("scoresArray",scoresArray);
+        console.log("scoresArray",scoresArray);
         const users = getAction("getAllUsers", function (usersArray) {
-            //console.log("userArray", usersArray);
+            console.log("userArray", usersArray);
             for (let i = 0; i < scorecount; i++) {
                 //console.log("Loop");
                 var found = usersArray.filter(
                     function (filterdata) { return filterdata.UserID == scoresArray[i].UserID }
                 );
-                // var arrayFound = usersArray.items.filter(function(item) {
-                //     return item.UserID == scoresArray[i].UserID;
-                // });
-                // //usersArray.find(scoresArray[i].UserID);
-                //console.log("arrayFound",found);
-                var userScore = scoresArray[i];
-                userScore.name = found[0].UserName
-                //console.log("userScore",userScore)
-                leaderboardObj.push(userScore)
-                // console.log("leaderboardObj",leaderboardObj)
+                if (!Array.isArray(found) || !found.length) {
+                    // array does not exist, is not an array, or is empty
+                    // ⇒ do not attempt to process array
+                    var userScore = scoresArray[i];
+                    userScore.name = "Deleted User"
+                    //console.log("userScore",userScore)
+                    leaderboardObj.push(userScore)
+                } else {
+                    // var arrayFound = usersArray.items.filter(function(item) {
+                    //     return item.UserID == scoresArray[i].UserID;
+                    // });
+                    // //usersArray.find(scoresArray[i].UserID);
+                    console.log("arrayFound", found);
+                    var userScore = scoresArray[i];
+                    userScore.name = found[0].UserName
+                    //console.log("userScore",userScore)
+                    leaderboardObj.push(userScore)
+                    // console.log("leaderboardObj",leaderboardObj)
+                }
+                // if (found !== undefined || found.length != 0) {
+
+                // }
+
 
             }
             //console.log("leaderboardObj",leaderboardObj)
