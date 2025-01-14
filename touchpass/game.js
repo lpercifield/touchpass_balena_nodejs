@@ -106,6 +106,7 @@ var numTargets = deviceArray.length;
 var gameTimer = new Interval(gameTick, 1000);
 var captureVideo = false;
 var gameOver = false;
+var savedGame = false;
 var animateInterval;
 var isRecording = false;
 var gameMode = 0; // RIGHT, LEFT, Random
@@ -431,7 +432,7 @@ udpSocket.on("listening", function () {
 //
 
 function gameTick() {
-  if (timerSeconds === 0) {
+  if (timerSeconds === 0 && !gameOver) {
     // fetch("/scoreboard/reset", {
     //   method: "GET", // default, so we can ignore
     // });
