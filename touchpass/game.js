@@ -138,10 +138,10 @@ function getUserData(card){
   users.getUserByCard(card,function(usersFound){
     console.log("usersFound",usersFound.foundUser);
     if(usersFound.foundUser != null){
-      console.log(usersFound.UserID);
+      console.log(usersFound.foundUser.UserID);
       activeUser = usersFound.foundUser;
       events.emit("user-data", activeUser);
-      users.getUserHighScore(usersFound.UserID,function(scores){
+      users.getUserHighScore(usersFound.foundUser.UserID,function(scores){
         //console.log(scores);
         events.emit("user-score-data", scores);
         events.emit("game-reset");
@@ -321,7 +321,7 @@ udpSocket.on("message", function (message, remote) {
     // expected output: 42
     // console.log(receivedJson.result);
     // expected output: true
-    if (receivedJson.goal === 1) {
+    if (receivedJson.goal === 1 && !gameOver) {
       reactionTimes.push(receivedJson.reactTime);
       if (!gameTimer.isRunning()) {
         gameTimer.start();
@@ -365,6 +365,8 @@ udpSocket.on("message", function (message, remote) {
           nextTarget = targetCounter;
           break;
       }
+    }else if(receivedJson.goal === 1 && gameOver){
+      events.emit("timer-tick", 0);
     }
     if (receivedJson.ack === 1) {
       console.log("ACK: ", receivedJson.deviceId);
