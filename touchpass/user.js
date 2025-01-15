@@ -57,6 +57,25 @@ function getHighScore(callback) {
         callback(jsonAsArray);
     });
 }
+function getHighScoreByLocation(location,callback) {
+    //var obj = null;
+    var payload = {};
+    payload.locationID = location;
+    // payload.userName = message.team + " " + message.jerseyNumber;
+    // payload.metadata = { "cardId": message.cardId }
+    // var jsonData = postAction("addUser", payload, function (jsonData) {
+    //     callback(jsonData);
+    // });
+    var data = postAction("queryGamesByLocationSortedByScore",payload, function (jsonData) {
+        const jsonAsArray = Object.keys(jsonData).map(function (key) {
+            return jsonData[key];
+        })
+            .sort(function (itemA, itemB) {
+                return itemB.Score - itemA.Score;
+            });
+        callback(jsonAsArray);
+    });
+}
 
 function getUserByCard(cardId, callback) {
 
@@ -93,18 +112,22 @@ function getUserByCard(cardId, callback) {
     });
 }
 
-function getLeaderboardData(count, callback) {
-    const scorecount = count;
-    console.log("scorecount", scorecount);
+function getLeaderboardData(count,location, callback) {
+
+    var scorecount = count;
+    //console.log("scorecount", scorecount);
     var leaderboardObj = [];
-    getHighScore(function (highScores) {
+    getHighScoreByLocation(location,function (highScores) {
         const scoresArray = Object.keys(highScores).map(function (key) {
             return highScores[key];
         })
             .sort(function (itemA, itemB) {
                 return itemB.Score - itemA.Score;
             });
-        console.log("scoresArray",scoresArray);
+        console.log("scoresArray",scoresArray.length);
+        if(count == 0){
+            scorecount = scoresArray.length;
+        }
         const users = getAction("getAllUsers", function (usersArray) {
             console.log("userArray", usersArray);
             for (let i = 0; i < scorecount; i++) {

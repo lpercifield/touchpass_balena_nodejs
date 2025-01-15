@@ -28,7 +28,6 @@
 
         main {
             width: 40rem;
-            height: 43rem;
             background-color: #ffffff;
             -webkit-box-shadow: 0px 5px 15px 8px #e4e7fb;
             box-shadow: 0px 5px 15px 8px #e4e7fb;
@@ -245,7 +244,7 @@
     <main>
         <div id="header">
             <h1>Ranking: </h1>
-            <h1 id = "gameType">6x60 Game</h1>
+            <h1 id="gameType">6x60 Game</h1>
             <!-- <button class="share">
                 <i class="ph ph-share-network"></i>
             </button> -->
@@ -253,7 +252,7 @@
         <div id="leaderboard">
             <div class="ribbon"></div>
             <table id="leaderTable">
-                <tr>
+                <!-- <tr>
                     <td class="number">1</td>
                     <td class="name">1</td>
                     <td class="points">
@@ -281,7 +280,7 @@
                     <td class="number">5</td>
                     <td class="name">5</td>
                     <td class="points">1</td>
-                </tr>
+                </tr> -->
             </table>
             <!-- <div id="buttons">
                 <button class="exit">Exit</button>
@@ -316,35 +315,52 @@
             //document.getElementById("highScore").innerText = "HIGH SCORE: " + value[0].Score + " - " + newDate;
             var table = document.getElementById("leaderTable");
             var medalHTML = '<img class="gold-medal" src="https://github.com/malunaridev/Challenges-iCodeThis/blob/master/4-leaderboard/assets/gold-medal.png?raw=true" alt="gold medal" />'
-            for (var i = 0, row; row = table.rows[i]; i++) {
-                //iterate through rows
-                //rows would be accessed using the "row" variable assigned in the for loop
-                //var numberField = row.getElementsByClassName("number");
-                console.log(row.getElementsByClassName("name")[0].innerHTML = value[i].name);
-                if(i==0){
-                    console.log(row.getElementsByClassName("points")[0].innerHTML = value[i].Score+medalHTML);
-                }else{
-                    console.log(row.getElementsByClassName("points")[0].innerHTML = value[i].Score);
-                }
-                
-                // row.getElementsByClassName("points").innerText;
-                for (var j = 0, col; col = row.cells[j]; j++) {
-                    //iterate through columns
-                    // console.log(col);
-                    // console.log(col.querySelectorAll( 'td.name' ));
-                    // if(col.class == "name"){
-                    //     col.innerText = value[0].name;
-                    // }
-                    //columns would be accessed using the "col" variable assigned in the for loop
+            for (let j = 0; j < value.length; j++) {
+                const tr = table.insertRow();
+                const tdNumber = tr.insertCell();
+                tdNumber.classList.add("number");
+                const tdName = tr.insertCell();
+                tdName.classList.add("name");
+                const tdPoints = tr.insertCell();
+                tdPoints.classList.add("points");
+                tdNumber.innerHTML = j+1;
+                tdName.innerHTML = value[j].name;
+                if (j == 0) {
+                    tdPoints.innerHTML = value[j].Score + medalHTML;
+                } else {
+                    tdPoints.innerHTML = value[j].Score;
                 }
             }
+
+            // for (var i = 0, row; row = table.rows[i]; i++) {
+            //     //iterate through rows
+            //     //rows would be accessed using the "row" variable assigned in the for loop
+            //     //var numberField = row.getElementsByClassName("number");
+            //     console.log(row.getElementsByClassName("name")[0].innerHTML = value[i].name);
+            //     if (i == 0) {
+            //         console.log(row.getElementsByClassName("points")[0].innerHTML = value[i].Score + medalHTML);
+            //     } else {
+            //         console.log(row.getElementsByClassName("points")[0].innerHTML = value[i].Score);
+            //     }
+
+            //     // row.getElementsByClassName("points").innerText;
+            //     for (var j = 0, col; col = row.cells[j]; j++) {
+            //         //iterate through columns
+            //         // console.log(col);
+            //         // console.log(col.querySelectorAll( 'td.name' ));
+            //         // if(col.class == "name"){
+            //         //     col.innerText = value[0].name;
+            //         // }
+            //         //columns would be accessed using the "col" variable assigned in the for loop
+            //     }
+            // }
             //makeCode(value);
             //resetGame(false);
         });
         socket.on("game-reset", (value) => {
-            socket.emit("refresh-leaderboard",5);
+            socket.emit("refresh-leaderboard", 0);
         })
-        socket.emit("refresh-leaderboard",5);
+        socket.emit("refresh-leaderboard", 0);
         console.log("emitted refresh-leaderboard")
     }
 

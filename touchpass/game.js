@@ -72,6 +72,9 @@ https://docs.balena.io/learn/develop/multicontainer/#labels
 
 //5875620,5807792,5800040,5806000,5867696,5799664
 
+//2016 Girls,2016 Boys,2015 Boys,2014 Boys,2013 Girls,2014 Girls,2013 Boys,2012 Boys,HS Boys Red,HS Boys Black
+//Forge Elite Athletic Development //FEADNVadmin
+
 
 const message = "Server?";
 //const deviceArray = [13456292, 5867696, 13505620, 13475596, 13455872, 13458656];
@@ -443,7 +446,7 @@ function gameTick() {
     gameOver = true;
     var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
     gameObj.userID = activeUser.UserID;
-    gameObj.locationID = process.env.LOCATION;;
+    gameObj.locationID = process.env.LOCATION;
     gameObj.gameName = numDevices.toString();
     gameObj.duration = process.env.GAME_LENGTH;
     gameObj.device = process.env.BALENA_DEVICE_NAME_AT_INIT;

@@ -6,7 +6,7 @@ console.log("starting leaderboard.js")
 
 events.addListener("refresh-leaderboard", function (count) {
     console.log("added refresh-leaderboard listener",count)
-    users.getLeaderboardData(count,function(scoreData){
+    users.getLeaderboardData(count,process.env.LOCATION,function(scoreData){
         events.emit("leaderboard-data",scoreData);
         console.log("Emitting leaderboard data");
     })
