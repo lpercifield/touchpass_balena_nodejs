@@ -26,7 +26,7 @@ const ipArray = [
 ];
 
 ipArray.forEach((element) =>
-  arduino.doUpdate(element, './arduino/touch_pass_TEST_Quikick2.ino.bin', function () {
+  arduino.doUpdate(element, './arduino/touch_pass_Quikick2.ino.bin', function () {
     console.log("Done");
   })
 );
