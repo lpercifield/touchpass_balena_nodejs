@@ -15,23 +15,23 @@ const { log } = require("console");
 const ipRange = process.env.BROADCAST_ADDRESS;
 var HID = require('node-hid');
 var devices = HID.devices();
-var gopro =require("./gopro.js");
+var gopro = require("./gopro.js");
 
 var nfcBuffs = ''
 var activeUser = null;
 var buffsCount = 0
-var keymap = {'04':'A','05':'B','06':'C','07':'D','08':'E','09':'F','0a':'G','0b':'H','0c':'I','0d':'J','0e':'K','0f':'L','10':'M','11':'N','12':'O','13':'P','14':'Q','15':'R','16':'S','17':'T','18':'U','19':'V','1a':'W','1b':'X','1c':'Y','1d':'Z','1e':'1','1f':'2','20':'3','21':'4','22':'5','23':'6','24':'7','25':'8','26':'9','27':'0','00':''}
+var keymap = { '04': 'A', '05': 'B', '06': 'C', '07': 'D', '08': 'E', '09': 'F', '0a': 'G', '0b': 'H', '0c': 'I', '0d': 'J', '0e': 'K', '0f': 'L', '10': 'M', '11': 'N', '12': 'O', '13': 'P', '14': 'Q', '15': 'R', '16': 'S', '17': 'T', '18': 'U', '19': 'V', '1a': 'W', '1b': 'X', '1c': 'Y', '1d': 'Z', '1e': '1', '1f': '2', '20': '3', '21': '4', '22': '5', '23': '6', '24': '7', '25': '8', '26': '9', '27': '0', '00': '' }
 
 
 try {
-  var reader = new HID.HID(0x413d,0x2107);// PID: 0x2107 VID: 0x413d
-  reader.on("data", function(data) { 
-    buffsCount+=1
+  var reader = new HID.HID(0x413d, 0x2107);// PID: 0x2107 VID: 0x413d
+  reader.on("data", function (data) {
+    buffsCount += 1
     //console.log("DATA: ",data)
     var nfcBuf = Buffer.from([data[2]]);
     if (nfcBuf.toString('hex') == '28') {
       cardId = nfcBuffs;
-      console.log("CARD ID:",cardId); 
+      console.log("CARD ID:", cardId);
       getUserData(cardId);
       nfcBuffs = [] // and reset counter/buffer
       buffsCount = 0
@@ -123,34 +123,34 @@ var ackTimeout = null;
 // })
 
 var isDarwin = process.platform === "darwin";
-if(isDarwin){
-process.stdin.resume();
+if (isDarwin) {
+  process.stdin.resume();
 
-process.stdin.on('data', (data) => {
-  const input = data.toString().trim();
-  //console.log('You entered:', input);
-  console.log("CARD ID:",input); 
-  getUserData(input);
+  process.stdin.on('data', (data) => {
+    const input = data.toString().trim();
+    //console.log('You entered:', input);
+    console.log("CARD ID:", input);
+    getUserData(input);
 
-});
+  });
 
-console.log('Enter some text and press Enter:');
+  console.log('Enter some text and press Enter:');
 
 }
 
-function getUserData(card){
-  users.getUserByCard(card,function(usersFound){
-    console.log("usersFound",usersFound.foundUser);
-    if(usersFound.foundUser != null){
+function getUserData(card) {
+  users.getUserByCard(card, function (usersFound) {
+    console.log("usersFound", usersFound.foundUser);
+    if (usersFound.foundUser != null) {
       console.log(usersFound.foundUser.UserID);
       activeUser = usersFound.foundUser;
       events.emit("user-data", activeUser);
-      users.getUserHighScore(usersFound.foundUser.UserID,function(scores){
+      users.getUserHighScore(usersFound.foundUser.UserID, function (scores) {
         //console.log(scores);
         events.emit("user-score-data", scores);
         events.emit("game-reset");
       })
-    }else{
+    } else {
       console.log("NO USER FOUND")
       var newUserObj = {}
       newUserObj.card = card
@@ -159,16 +159,16 @@ function getUserData(card){
       // Object.keys(jsonData).forEach(function (key) {
 
       // })
-      events.emit("new-user",newUserObj);
+      events.emit("new-user", newUserObj);
       //createUser(card);
     }
 
   });
 }
 
-function createUser(message){
-  users.addUser(message,function(data){
-    if(data){
+function createUser(message) {
+  users.addUser(message, function (data) {
+    if (data) {
       getUserData(message.cardId);
     }
   })
@@ -220,7 +220,7 @@ events.addListener("game-reset", function () {
   if (isRecording) {
     stopRecording();
   }
-  users.getHighScore(function(data){
+  users.getHighScore(function (data) {
     //console.log(data)
     events.emit("score-data", data);
   })
@@ -244,7 +244,7 @@ function sendUDPMessage(message, port) {
       activeId: deviceArray[activeTarget],
       nextId: deviceArray[nextTarget],
     });
-    console.log("Sending: " + responseJson + "to port - " + "4432");
+    console.log(Date.now()+ " Sending: " + responseJson + "to port - " + "4432");
     //const response = "Hellow there!";
     udpSocket.setBroadcast(true);
     udpSocket.send(responseJson, 0, responseJson.length, "4432", ipRange);
@@ -316,7 +316,7 @@ udpSocket.on("listening", function () {
 
 udpSocket.on("message", function (message, remote) {
   console.log(
-    "SERVER RECEIVED:",
+    Date.now()+ " SERVER RECEIVED:",
     remote.address + ":" + remote.port + " - " + message
   );
   try {
@@ -332,17 +332,17 @@ udpSocket.on("message", function (message, remote) {
       }
       if (!gameOver) {
         gameScore++;
-        console.log("GameScore: ",gameScore);
-        if (gameMode === 0 && gameScore === numDevices-1) {
+        console.log("GameScore: ", gameScore);
+        if (gameMode === 0 && gameScore === numDevices - 1) {
           targetCounter = numDevices - 1;
           gameMode = 1;
-          console.log("Game Mode: ",gameMode);
-          console.log("targetCounter: ",targetCounter);
+          console.log("Game Mode: ", gameMode);
+          console.log("targetCounter: ", targetCounter);
         }
-        if (gameMode === 1 && gameScore === (numDevices*2)-1) {
+        if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
           gameMode = 2;
-          console.log("Game Mode: ",gameMode);
-          console.log("targetCounter: ",targetCounter);
+          console.log("Game Mode: ", gameMode);
+          console.log("targetCounter: ", targetCounter);
         }
       }
       var sharedJson = {};
@@ -369,11 +369,11 @@ udpSocket.on("message", function (message, remote) {
           nextTarget = targetCounter;
           break;
       }
-    }else if(receivedJson.goal === 1 && gameOver){
+    } else if (receivedJson.goal === 1 && gameOver) {
       events.emit("timer-tick", 0);
     }
     if (receivedJson.ack === 1) {
-      console.log("ACK: ", receivedJson.deviceId);
+      console.log(Date.now()+ " ACK: ", receivedJson.deviceId);
       //ackCounter++;
       if (ackTimeout) {
         //console.log("clearing resend interval");
@@ -381,16 +381,19 @@ udpSocket.on("message", function (message, remote) {
         ackTimeout = null;
       }
     } else {
-      sendUDPMessage();
-      if (ackTimeout === null) {
-        //console.log("setting resend interval")
-        ackTimeout = setInterval(function () {
-          // if(ackCounter<2){
-          console.log("Not enough ACKs");
-          sendUDPMessage();
-          // }
-        }, 500);
+      if (!gameOver) {
+        sendUDPMessage();
+        if (ackTimeout === null) {
+          //console.log("setting resend interval")
+          ackTimeout = setInterval(function () {
+            // if(ackCounter<2){
+            console.log("Not enough ACKs");
+            sendUDPMessage();
+            // }
+          }, 750);
+        }
       }
+
     }
 
     // const response = JSON.stringify({
@@ -442,7 +445,7 @@ function gameTick() {
     // fetch("/scoreboard/reset", {
     //   method: "GET", // default, so we can ignore
     // });
-    console.log("Active User",activeUser);
+    console.log("Active User", activeUser);
     gameTimer.stop();
     gameOver = true;
     var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
@@ -451,12 +454,12 @@ function gameTick() {
     gameObj.gameName = numDevices.toString();
     gameObj.duration = process.env.GAME_LENGTH;
     gameObj.device = process.env.BALENA_DEVICE_NAME_AT_INIT;
-    gameObj.metadata = {"reactionTimes":reactionTimes}; //{"data":"test"}
-    gameObj.score = gameScore*-1;
+    gameObj.metadata = { "reactionTimes": reactionTimes }; //{"data":"test"}
+    gameObj.score = gameScore * -1;
     console.log(gameObj)
-    users.addGame(gameObj,function(data){
+    users.addGame(gameObj, function (data) {
       //console.log(data);
-      events.emit("refresh-leaderboard",5);
+      events.emit("refresh-leaderboard", 5);
     })
     //animateColors();
     // setTimeout(function () {
@@ -469,7 +472,7 @@ function gameTick() {
     //   udpSocket.setBroadcast(true);
     //   udpSocket.send(response, 0, response.length, "4432", "10.42.0.255");
     // }, 5000);
-  } else if(!gameOver){
+  } else if (!gameOver) {
     timerSeconds--;
     events.emit("timer-tick", timerSeconds);
   }
@@ -498,7 +501,7 @@ function gameTick() {
   }
 
   //"timer-tick";
- 
+
 }
 
 function Interval(fn, time) {

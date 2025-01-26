@@ -129,7 +129,7 @@ function getLeaderboardData(count,location, callback) {
             scorecount = scoresArray.length;
         }
         const users = getAction("getAllUsers", function (usersArray) {
-            console.log("userArray", usersArray);
+            //console.log("userArray", usersArray);
             for (let i = 0; i < scorecount; i++) {
                 //console.log("Loop");
                 var found = usersArray.filter(
@@ -147,7 +147,7 @@ function getLeaderboardData(count,location, callback) {
                     //     return item.UserID == scoresArray[i].UserID;
                     // });
                     // //usersArray.find(scoresArray[i].UserID);
-                    console.log("arrayFound", found);
+                    //console.log("arrayFound", found);
                     var userScore = scoresArray[i];
                     userScore.name = found[0].UserName
                     //console.log("userScore",userScore)
