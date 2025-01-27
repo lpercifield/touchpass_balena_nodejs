@@ -106,6 +106,8 @@ var targetCounter = 0;
 var reactionTimes = [];
 //var gameLength = 90;
 var timerSeconds = process.env.GAME_LENGTH;
+var playMode = process.env.PLAY_MODE;
+var negativeGoal = (process.env.NEGATIVE_GOAL  === 'true')//(process.env.NEGATIVE_GOAL  === 'true')
 var numTargets = deviceArray.length;
 var gameTimer = new Interval(gameTick, 1000);
 var captureVideo = false;
@@ -121,6 +123,7 @@ var ackTimeout = null;
 //   console.log(data)
 //   events.emit("score-data", data);
 // })
+console.log("NEGATIVE GOAL: ",negativeGoal);
 
 var isDarwin = process.platform === "darwin";
 if (isDarwin) {
@@ -333,17 +336,17 @@ udpSocket.on("message", function (message, remote) {
       if (!gameOver) {
         gameScore++;
         console.log("GameScore: ", gameScore);
-        // if (gameMode === 0 && gameScore === numDevices - 1) {
-        //   targetCounter = numDevices - 1;
-        //   gameMode = 1;
-        //   console.log("Game Mode: ", gameMode);
-        //   console.log("targetCounter: ", targetCounter);
-        // }
-        // if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
-        //   gameMode = 2;
-        //   console.log("Game Mode: ", gameMode);
-        //   console.log("targetCounter: ", targetCounter);
-        // }
+        if (gameMode === 0 && gameScore === numDevices - 1) {
+          targetCounter = numDevices - 1;
+          gameMode = 1;
+          console.log("Game Mode: ", gameMode);
+          console.log("targetCounter: ", targetCounter);
+        }
+        if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
+          gameMode = 2;
+          console.log("Game Mode: ", gameMode);
+          console.log("targetCounter: ", targetCounter);
+        }
       }
       var sharedJson = {};
       sharedJson.score = gameScore;
@@ -371,6 +374,12 @@ udpSocket.on("message", function (message, remote) {
       }
     } else if (receivedJson.goal === 1 && gameOver) {
       events.emit("timer-tick", 0);
+    }else if(receivedJson.goal === 0 && negativeGoal && !gameOver){
+      gameScore--;
+      var sharedJson = {};
+      sharedJson.score = gameScore;
+      sharedJson.reactTime = receivedJson.reactTime;
+      events.emit("udpSocket-data", sharedJson);
     }
     if (receivedJson.ack === 1) {
       console.log(Date.now()+ " ACK: ", receivedJson.deviceId);
