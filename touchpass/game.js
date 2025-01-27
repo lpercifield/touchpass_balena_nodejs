@@ -333,17 +333,17 @@ udpSocket.on("message", function (message, remote) {
       if (!gameOver) {
         gameScore++;
         console.log("GameScore: ", gameScore);
-        if (gameMode === 0 && gameScore === numDevices - 1) {
-          targetCounter = numDevices - 1;
-          gameMode = 1;
-          console.log("Game Mode: ", gameMode);
-          console.log("targetCounter: ", targetCounter);
-        }
-        if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
-          gameMode = 2;
-          console.log("Game Mode: ", gameMode);
-          console.log("targetCounter: ", targetCounter);
-        }
+        // if (gameMode === 0 && gameScore === numDevices - 1) {
+        //   targetCounter = numDevices - 1;
+        //   gameMode = 1;
+        //   console.log("Game Mode: ", gameMode);
+        //   console.log("targetCounter: ", targetCounter);
+        // }
+        // if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
+        //   gameMode = 2;
+        //   console.log("Game Mode: ", gameMode);
+        //   console.log("targetCounter: ", targetCounter);
+        // }
       }
       var sharedJson = {};
       sharedJson.score = gameScore;
