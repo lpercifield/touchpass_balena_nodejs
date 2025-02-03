@@ -457,19 +457,22 @@ function gameTick() {
     console.log("Active User", activeUser);
     gameTimer.stop();
     gameOver = true;
-    var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
-    gameObj.userID = activeUser.UserID;
-    gameObj.locationID = process.env.LOCATION;
-    gameObj.gameName = numDevices.toString();
-    gameObj.duration = process.env.GAME_LENGTH;
-    gameObj.device = process.env.BALENA_DEVICE_NAME_AT_INIT;
-    gameObj.metadata = { "reactionTimes": reactionTimes }; //{"data":"test"}
-    gameObj.score = gameScore * -1;
-    console.log(gameObj)
-    users.addGame(gameObj, function (data) {
-      //console.log(data);
-      events.emit("refresh-leaderboard", 5);
-    })
+    if(activeUser != null){
+      var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
+      gameObj.userID = activeUser.UserID;
+      gameObj.locationID = process.env.LOCATION;
+      gameObj.gameName = numDevices.toString();
+      gameObj.duration = process.env.GAME_LENGTH;
+      gameObj.device = process.env.BALENA_DEVICE_NAME_AT_INIT;
+      gameObj.metadata = { "reactionTimes": reactionTimes }; //{"data":"test"}
+      gameObj.score = gameScore * -1;
+      console.log(gameObj)
+      users.addGame(gameObj, function (data) {
+        //console.log(data);
+        events.emit("refresh-leaderboard", 5);
+      })
+    }
+
     //animateColors();
     // setTimeout(function () {
     //   clearInterval(animateInterval);
