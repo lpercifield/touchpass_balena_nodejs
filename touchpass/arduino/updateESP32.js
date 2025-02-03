@@ -15,11 +15,15 @@ const doUpdate = (ipAddress, file, callback) => {
     ]);
   //const pythonProcess = spawn("python3 espota.py -r -i 10.42.0.244 -p 3232 --auth=4TouchPass -f 'touch_pass.ino.bin'");
   pythonProcess.stdout.on("data", (data) => {
+    console.log("---DATA--");
     console.log(ipAddress, "stdout: ", data);
+    console.log("---DATA--");
     // Do something with the data returned from python script
   });
   pythonProcess.stderr.on("data", (data) => {
-    console.log(ipAddress,`stderr: ${data}`);
+    //console.log(ipAddress,`stderr: ${data}`);
+    console.log(ipAddress);
+    console.log(data.toString());
   });
   pythonProcess.on("error", function (error) {
     console.log(ipAddress,"error code:", error);

@@ -20,16 +20,30 @@ const ipArray = [
   "10.42.0.120",
   "10.42.0.14",
   "10.42.0.111",
-  "10.42.0.77",
+  "10.42.0.133",
   "10.42.0.220",
-  "10.42.0.133"
+  "10.42.0.77"
 ];
+var counter = 0;
 // const ipArray = [
 //   "10.42.0.14"
 // ];
 
-ipArray.forEach((element) =>
-  arduino.doUpdate(element, './arduino/touch_pass_TEST_Quikick2.ino.bin', function () {
-    console.log("Done");
-  })
-);
+var args = process.argv.slice(2);
+
+function runUpdate(arrayToUse) {
+    arduino.doUpdate(arrayToUse[counter], './arduino/touch_pass_TEST_Quikick2_50.ino.bin', function () {
+        console.log("Done: ", arrayToUse[counter]);
+        counter++;
+        //runUpdate();
+        console.log(arrayToUse.length-counter)
+        if ((arrayToUse.length-counter)>0) {
+            runUpdate(arrayToUse);
+        }
+    })
+}
+if(args.length>0){
+    runUpdate(args);
+}else{
+    runUpdate(ipArray);
+}

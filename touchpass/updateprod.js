@@ -25,17 +25,27 @@ const ipArray = [
     "10.42.0.77"
 ];
 var counter = 0;
+// print process.argv
+// process.argv.forEach(function (val, index, array) {
+//     console.log(index + ': ' + val);
+//   });
 
-function runUpdate() {
-    arduino.doUpdate(ipArray[counter], './arduino/touch_pass_Quikick2.ino.bin', function () {
-        console.log("Done: ", ipArray[counter]);
+var args = process.argv.slice(2);
+
+function runUpdate(arrayToUse) {
+    arduino.doUpdate(arrayToUse[counter], './arduino/touch_pass_Quikick2.ino.bin', function () {
+        console.log("Done: ", arrayToUse[counter]);
         counter++;
         //runUpdate();
-        console.log(ipArray.length-counter)
-        if ((ipArray.length-counter)>0) {
-            runUpdate();
+        console.log(arrayToUse.length-counter)
+        if ((arrayToUse.length-counter)>0) {
+            runUpdate(arrayToUse);
         }
     })
 }
+if(args.length>0){
+    runUpdate(args);
+}else{
+    runUpdate(ipArray);
+}
 
-runUpdate();
