@@ -8,6 +8,9 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var scoreboardRouter = require("./routes/scoreboard");
 var leaderboardRouter = require("./routes/leaderboard");
+
+const users = require("./user.js");
+
 require('dotenv').config();
 
 //const net = require("net");
@@ -33,6 +36,34 @@ app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/scoreboard", scoreboardRouter);
 app.use("/leaderboard", leaderboardRouter);
+
+var fs = require('fs');
+var allUsers = JSON.parse(fs.readFileSync('allusersupdated.json', 'utf8'));
+
+// Route to render the select player form
+app.get('/select-player', (req, res) => {
+  const teams = [...new Set(allUsers.map(player => player.metadata.team))];
+  res.render('select-player', { teams, allUsers });
+});
+
+// Route to handle form submission and display player record
+app.post('/select-player', (req, res) => {
+  const { team, number } = req.body;
+  //const player = players.find(p => p.team === team && p.number === parseInt(number));
+  res.redirect(`/dashboard?player=${number}`);
+});
+
+// Route to render the dashboard
+app.get('/dashboard', (req, res) => {
+  const playerNumber = req.query.player;
+  users.getUserHighScore(playerNumber,function(gameData){
+    //const playerGames = gameStates.filter(game => game.player === playerNumber);
+    const player = allUsers.find(p => p.userID === playerNumber);
+    console.log(player);
+    res.render('dashboard', { gameStates: gameData, player });
+  })
+
+});
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

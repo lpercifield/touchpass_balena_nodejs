@@ -193,7 +193,7 @@ function addUser(message, callback) {
     var payload = {};
     payload.credits = 10;
     payload.userName = message.team + " " + message.jerseyNumber;
-    payload.metadata = { "cardId": message.cardId }
+    payload.metadata = { "cardId": message.cardId, "team":message.team, "number":message.jerseyNumber }
     var jsonData = postAction("addUser", payload, function (jsonData) {
         callback(jsonData);
     });

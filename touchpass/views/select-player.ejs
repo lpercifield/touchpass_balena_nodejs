@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/styles1.css">
+  <title>Select Player</title>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <h1>Select Player</h1>
+
+  <form action="/select-player" method="POST">
+    <label for="team">Team:</label>
+    <select id="team" name="team" required onchange="updatePlayerNumbers()">
+      <option value="">Select a team</option>
+      <% teams.forEach(team => { %>
+        <option value="<%= team %>"><%= team %></option>
+      <% }) %>
+    </select>
+    <br>
+    <label for="number">Player Number:</label>
+    <select id="number" name="number" required>
+      <option value="">Select a player number</option>
+    </select>
+    <br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <% if (typeof player !== 'undefined') { %>
+    <h2>Player Record</h2>
+    <p>Name: <%= player.name %></p>
+    <p>Team: <%= player.team %></p>
+    <p>Number: <%= player.number %></p>
+    <p>Score: <%= player.score %></p>
+  <% } %>
+
+  <%- include('partials/footer') %>
+  <script>
+    const players = <%- JSON.stringify(allUsers) %>;
+
+    function updatePlayerNumbers() {
+      const teamSelect = document.getElementById('team');
+      const numberSelect = document.getElementById('number');
+      const selectedTeam = teamSelect.value;
+
+      // Clear existing options
+      numberSelect.innerHTML = '<option value="">Select a player number</option>';
+
+      // Add new options based on selected team
+      players.filter(player => player.metadata.team === selectedTeam).forEach(player => {
+        const option = document.createElement('option');
+        option.value = player.userID;
+        //option.userID = player.userID;
+        option.textContent = player.metadata.number;
+        numberSelect.appendChild(option);
+      });
+    }
+  </script>
+</body>
+</html>

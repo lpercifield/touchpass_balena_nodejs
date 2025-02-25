@@ -19,6 +19,9 @@ services:
       io.balena.features.dbus: '1'
       io.balena.features.firmware: '1' 
 
+  balena-node-red:
+    image: bh.cr/balenalabs/balena-node-red
+
   # browser:
   #   image: bh.cr/balenalabs/browser-armv7hf # where <arch> is one of aarch64, arm32 or amd64
   #   privileged: true # required for UDEV to find plugged in peripherals such as a USB mouse

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/stylesheets/styles1.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Player Dashboard</title>
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <h1>Player Dashboard</h1>
+
+  <% if (player) { %>
+    <h2>Games for <%= player.userName %> (Team <%= player.metadata.team %>, Player Number <%= player.metadata.number %>)</h2>
+  <% } %>
+
+  <ul class="game-states">
+    <% gameStates.forEach(game => { %>
+      <li class="game-state <%= game.GameName %>">
+        <h2>TARGETS:<%= game.GameName %> DURATION: <%= game.Duration %></h2>
+        <p>Score: <%= game.Score %></p>
+        <canvas id="reactionTimeChart<%= game.GameID %>" width="400" height="200"></canvas>
+      </li>
+    <% }) %>
+  </ul>
+
+  <%- include('partials/footer') %>
+  <script src="/js/script.js"></script>
+  <script>
+    const gameStates = <%- JSON.stringify(gameStates) %>;
+    console.log(gameStates);
+    gameStates.forEach(game => {
+      const ctx = document.getElementById('reactionTimeChart' + game.GameID).getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: game.Metadata.reactionTimes.map((_, index) => (index + 1)),
+          datasets: [{
+            label: 'Reaction Time (ms)',
+            data: game.Metadata.reactionTimes,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            fill: true,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'SCORE'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Reaction Time (ms)'
+              }
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

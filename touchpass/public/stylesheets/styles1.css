@@ -1,0 +1,48 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+header, footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 1em 0;
+}
+
+header nav a {
+  color: white;
+  margin: 0 10px;
+  text-decoration: none;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+ul.game-states {
+  list-style-type: none;
+  padding: 0;
+}
+
+.game-state {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 10px;
+  padding: 20px;
+}
+
+.game-state.active {
+  border-color: green;
+}
+
+.game-state.paused {
+  border-color: yellow;
+}
+
+.game-state.completed {
+  border-color: red;
+}

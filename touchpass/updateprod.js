@@ -33,19 +33,24 @@ var counter = 0;
 var args = process.argv.slice(2);
 
 function runUpdate(arrayToUse) {
-    arduino.doUpdate(arrayToUse[counter], './arduino/touch_pass_Quikick2.ino.bin', function () {
+    arduino.doUpdate(arrayToUse[counter], './arduino/' + args[0] + '.ino.bin', function () {
         console.log("Done: ", arrayToUse[counter]);
         counter++;
         //runUpdate();
-        console.log(arrayToUse.length-counter)
-        if ((arrayToUse.length-counter)>0) {
+        console.log(arrayToUse.length - counter)
+        if ((arrayToUse.length - counter) > 0) {
             runUpdate(arrayToUse);
         }
     })
 }
-if(args.length>0){
-    runUpdate(args);
-}else{
+if (args[1] != null) {
+    console.log(args);
+    let ipArray = [];
+    for (let i = 1; i < args.length; i++) {
+        ipArray[i] = args[i];
+      }
+    runUpdate(ipArray);
+} else {
     runUpdate(ipArray);
 }
 
