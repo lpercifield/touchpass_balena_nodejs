@@ -43,7 +43,7 @@ var allUsersJson = "";
 
 // Route to render the select player form
 app.get('/select-player', (req, res) => {
-  users.getAllUsers(function(allUsers){
+  users.getAllUsers(function (allUsers) {
     console.log(allUsers);
     allUsersJson = allUsers;
     const teams = [...new Set(allUsers.map(player => player.Metadata.team))];
@@ -58,14 +58,40 @@ app.post('/select-player', (req, res) => {
   res.redirect(`/dashboard?player=${number}`);
 });
 
+app.post('/start-game', (req, res) => {
+  const gamePlayer = req.body.value;
+  console.log("START GAME", gamePlayer);
+  events.emit("user-data", gamePlayer);
+  users.getUserHighScore(gamePlayer.UserID, function (scores) {
+    //console.log(scores);
+    events.emit("user-score-data", scores);
+    events.emit("game-reset");
+  })
+  // const { team, number } = req.body;
+  // //const player = players.find(p => p.team === team && p.number === parseInt(number));
+  // res.redirect(`/dashboard?player=${number}`);
+  res.end();
+});
 // Route to render the dashboard
 app.get('/dashboard', (req, res) => {
   const playerNumber = req.query.player;
-  users.getUserHighScore(playerNumber,function(gameData){
+  users.getUserHighScore(playerNumber, function (gameData) {
     //const playerGames = gameStates.filter(game => game.player === playerNumber);
-    const player = allUsersJson.find(p => p.UserID === playerNumber);
-    console.log(player);
-    res.render('dashboard', { gameStates: gameData, player });
+    if (allUsersJson == "") {
+      console.log("Getting all users");
+      users.getAllUsers(function (allUsers) {
+        console.log(allUsers);
+        allUsersJson = allUsers;
+        const player = allUsersJson.find(p => p.UserID === playerNumber);
+        console.log(player);
+        res.render('dashboard', { gameStates: gameData, player });
+      });
+    } else {
+      const player = allUsersJson.find(p => p.UserID === playerNumber);
+      console.log(player);
+      res.render('dashboard', { gameStates: gameData, player });
+    }
+
   })
 
 });

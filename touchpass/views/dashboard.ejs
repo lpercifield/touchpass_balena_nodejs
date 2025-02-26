@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,22 +8,25 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <title>Player Dashboard</title>
 </head>
+
 <body>
   <%- include('partials/header') %>
 
   <% if (player) { %>
-    <h2>Games for Team <%= player.metadata.team %>, Player Number <%= player.metadata.number %></h2>
+  <h2>Games for Team <%= player.Metadata.team %>, Player Number <%= player.Metadata.number %></h2>
+  <button onclick="startGame()">Start Game</button>
   <% } %>
 
   <ul class="game-states">
     <% gameStates.forEach(game => { %>
-      <li class="game-state <%= game.GameName %>">
-        <div>        <h2>TARGETS:<%= game.GameName %> DURATION: <%= game.Duration %></h2>
+    <li class="game-state <%= game.GameName %>">
+      <div>
+        <h2>TARGETS:<%= game.GameName %> DURATION: <%= game.Duration %></h2>
         <h2>Score: <%= game.Score %></h2>
-        <button onclick="startGame()">Start Game</button></div>
+      </div>
 
-        <canvas id="reactionTimeChart<%= game.GameID %>" width="400" height="200"></canvas>
-      </li>
+      <canvas id="reactionTimeChart<%= game.GameID %>" width="400" height="200"></canvas>
+    </li>
     <% }) %>
   </ul>
 
@@ -33,14 +37,16 @@
     const gameStates = <%- JSON.stringify(gameStates) %>;
     console.log(gameStates);
     gameStates.forEach(game => {
+      var dataArray = game.Metadata.reactionTimes;
+      dataArray.shift();
       const ctx = document.getElementById('reactionTimeChart' + game.GameID).getContext('2d');
       new Chart(ctx, {
         type: 'line',
         data: {
-          labels: game.Metadata.reactionTimes.map((_, index) => (index + 1)),
+          labels: dataArray.map((_, index) => (index + 1)),
           datasets: [{
             label: 'Reaction Time (ms)',
-            data: game.Metadata.reactionTimes,
+            data: dataArray,
             borderColor: 'rgba(75, 192, 192, 1)',
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             fill: true,
@@ -66,9 +72,22 @@
         }
       });
     });
-    function startGame(){
 
+    function startGame() {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", '/start-game', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({
+        value: <%- JSON.stringify(player) %>
+      }));
+      // var form = document.createElement('form');
+      // form.setAttribute('method', 'post');
+      // form.setAttribute('action', '/start-game');
+      // form.style.display = 'hidden';
+      // document.body.appendChild(form)
+      // form.requestSubmit();
     }
   </script>
 </body>
+
 </html>
