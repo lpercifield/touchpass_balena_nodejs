@@ -38,12 +38,17 @@ app.use("/scoreboard", scoreboardRouter);
 app.use("/leaderboard", leaderboardRouter);
 
 var fs = require('fs');
-var allUsers = JSON.parse(fs.readFileSync('allusersupdated.json', 'utf8'));
+var allUsersJson = "";
+//var allUsers = JSON.parse(fs.readFileSync('allusersupdated.json', 'utf8'));
 
 // Route to render the select player form
 app.get('/select-player', (req, res) => {
-  const teams = [...new Set(allUsers.map(player => player.metadata.team))];
-  res.render('select-player', { teams, allUsers });
+  users.getAllUsers(function(allUsers){
+    console.log(allUsers);
+    allUsersJson = allUsers;
+    const teams = [...new Set(allUsers.map(player => player.Metadata.team))];
+    res.render('select-player', { teams, allUsers });
+  });
 });
 
 // Route to handle form submission and display player record
@@ -58,7 +63,7 @@ app.get('/dashboard', (req, res) => {
   const playerNumber = req.query.player;
   users.getUserHighScore(playerNumber,function(gameData){
     //const playerGames = gameStates.filter(game => game.player === playerNumber);
-    const player = allUsers.find(p => p.userID === playerNumber);
+    const player = allUsersJson.find(p => p.UserID === playerNumber);
     console.log(player);
     res.render('dashboard', { gameStates: gameData, player });
   })

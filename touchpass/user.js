@@ -170,6 +170,11 @@ function getLeaderboardData(count,location, callback) {
 
     })
 }
+function getAllUsers(callback){
+    const users = getAction("getAllUsers", function (usersArray) {
+        callback(usersArray);
+    })
+}
 
 function getUserHighScore(userId, callback) {
     //var userObj = null;
@@ -207,4 +212,4 @@ function addGame(payload, callback) {
         callback(jsonData);
     });
 }
-module.exports = { getUserByCard, getHighScore, getUserHighScore, addGame, addUser, getLeaderboardData };
+module.exports = { getUserByCard, getHighScore, getUserHighScore, addGame, addUser, getLeaderboardData, getAllUsers };

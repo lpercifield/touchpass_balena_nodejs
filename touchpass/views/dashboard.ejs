@@ -10,17 +10,17 @@
 <body>
   <%- include('partials/header') %>
 
-  <h1>Player Dashboard</h1>
-
   <% if (player) { %>
-    <h2>Games for <%= player.userName %> (Team <%= player.metadata.team %>, Player Number <%= player.metadata.number %>)</h2>
+    <h2>Games for Team <%= player.metadata.team %>, Player Number <%= player.metadata.number %></h2>
   <% } %>
 
   <ul class="game-states">
     <% gameStates.forEach(game => { %>
       <li class="game-state <%= game.GameName %>">
-        <h2>TARGETS:<%= game.GameName %> DURATION: <%= game.Duration %></h2>
-        <p>Score: <%= game.Score %></p>
+        <div>        <h2>TARGETS:<%= game.GameName %> DURATION: <%= game.Duration %></h2>
+        <h2>Score: <%= game.Score %></h2>
+        <button onclick="startGame()">Start Game</button></div>
+
         <canvas id="reactionTimeChart<%= game.GameID %>" width="400" height="200"></canvas>
       </li>
     <% }) %>
@@ -28,6 +28,7 @@
 
   <%- include('partials/footer') %>
   <script src="/js/script.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     const gameStates = <%- JSON.stringify(gameStates) %>;
     console.log(gameStates);
@@ -65,6 +66,9 @@
         }
       });
     });
+    function startGame(){
+
+    }
   </script>
 </body>
 </html>

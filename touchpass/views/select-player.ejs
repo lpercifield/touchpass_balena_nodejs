@@ -49,11 +49,11 @@
       numberSelect.innerHTML = '<option value="">Select a player number</option>';
 
       // Add new options based on selected team
-      players.filter(player => player.metadata.team === selectedTeam).forEach(player => {
+      players.filter(player => player.Metadata.team === selectedTeam).forEach(player => {
         const option = document.createElement('option');
-        option.value = player.userID;
+        option.value = player.UserID;
         //option.userID = player.userID;
-        option.textContent = player.metadata.number;
+        option.textContent = player.Metadata.number;
         numberSelect.appendChild(option);
       });
     }
