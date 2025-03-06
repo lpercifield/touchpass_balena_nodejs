@@ -15,6 +15,9 @@
   <% if (player) { %>
   <h2>Games for Team <%= player.Metadata.team %>, Player Number <%= player.Metadata.number %></h2>
   <button onclick="startGame()">Start Game</button>
+  <div class="team" id="totalGames">Number of Games:</div>
+  <div class="team" id="totalScore">Total Points Scored:</div>
+  <div class="team" id="medianReaction">Median Reaction Time:</div>
   <% } %>
 
   <ul class="game-states">
@@ -23,6 +26,7 @@
       <div>
         <h2>TARGETS:<%= game.GameName %> DURATION: <%= game.Duration %></h2>
         <h2>Score: <%= game.Score %></h2>
+        <div class="team" id="reactionTime<%= game.GameID %>">Median Reaction Time: </div>
       </div>
 
       <canvas id="reactionTimeChart<%= game.GameID %>" width="400" height="200"></canvas>
@@ -36,9 +40,20 @@
   <script>
     const gameStates = <%- JSON.stringify(gameStates) %>;
     console.log(gameStates);
+    var totalPoints = 0;
+    var totalGames = 0;
+    var totalReactionTimes = [];
     gameStates.forEach(game => {
       var dataArray = game.Metadata.reactionTimes;
+      totalPoints += game.Score;
+      totalGames++;
       dataArray.shift();
+      var gameMedian = calculateMedian(dataArray);
+      document.getElementById("reactionTime"+ game.GameID).innerText = "Median Reaction Time: " + gameMedian;
+      // for (let i = 0; i < dataArray.length; i++) {
+      //   console.log(array[i]);
+      // }
+      totalReactionTimes = totalReactionTimes.concat(dataArray);
       const ctx = document.getElementById('reactionTimeChart' + game.GameID).getContext('2d');
       new Chart(ctx, {
         type: 'line',
@@ -72,6 +87,23 @@
         }
       });
     });
+    document.getElementById("totalGames").innerText = "Number of Games: " + totalGames;
+    document.getElementById("totalScore").innerText = "Total Points Scored: " + totalPoints;
+    document.getElementById("medianReaction").innerText = "Median Reaction Time: " + calculateMedian(totalReactionTimes);
+  //   <div class="team" id="totalGames">Number of Games:</div>
+  // <div class="team" id="totalScore">Total Points Scored:</div>
+  // <div class="team" id="medianReaction">Median Reaction Time:</div>
+    function calculateMedian(arr) {
+      const sortedArr = [...arr].sort((a, b) => a - b);
+      const arrLength = sortedArr.length;
+      const middleIndex = Math.floor(arrLength / 2);
+
+      if (arrLength % 2 === 0) {
+        return (sortedArr[middleIndex - 1] + sortedArr[middleIndex]) / 2;
+      } else {
+        return sortedArr[middleIndex];
+      }
+    }
 
     function startGame() {
       var xhr = new XMLHttpRequest();

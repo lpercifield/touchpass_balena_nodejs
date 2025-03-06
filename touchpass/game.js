@@ -18,7 +18,7 @@ var devices = HID.devices();
 var gopro = require("./gopro.js");
 
 var nfcBuffs = ''
-var activeUser = null;
+var activeUser = '{"credits":10,"userID":"10e8b038-3a5b-4541-9093-8e825bef2f35","metadata":{"cardId":"0000000000","team":"Quikick","number":0},"userName":"Quikick User"}';
 var buffsCount = 0
 var keymap = { '04': 'A', '05': 'B', '06': 'C', '07': 'D', '08': 'E', '09': 'F', '0a': 'G', '0b': 'H', '0c': 'I', '0d': 'J', '0e': 'K', '0f': 'L', '10': 'M', '11': 'N', '12': 'O', '13': 'P', '14': 'Q', '15': 'R', '16': 'S', '17': 'T', '18': 'U', '19': 'V', '1a': 'W', '1b': 'X', '1c': 'Y', '1d': 'Z', '1e': '1', '1f': '2', '20': '3', '21': '4', '22': '5', '23': '6', '24': '7', '25': '8', '26': '9', '27': '0', '00': '' }
 
@@ -73,6 +73,9 @@ https://docs.balena.io/learn/develop/multicontainer/#labels
 
 //5875620,5807792,5800040,5806000,5867696,5799664
 
+//5875620,5807792,5800040,5806000,5867696,5799664
+
+//2016 Girls,2016 Boys,2015 Boys,2014 Boys,2013 Girls,2014 Girls,2013 Boys,2012 Boys,HS Boys Red,HS Boys Black
 //2016 Girls,2016 Boys,2015 Boys,2014 Boys,2013 Girls,2014 Girls,2013 Boys,2012 Boys,HS Boys Red,HS Boys Black
 //Forge Elite Athletic Development //FEADNVadmin
 
@@ -223,7 +226,7 @@ events.addListener("game-reset", function () {
   if (isRecording) {
     stopRecording();
   }
-  users.getHighScore(function (data) {
+  users.getHighScoreByLocation(process.env.LOCATION,function (data) {
     //console.log(data)
     events.emit("score-data", data);
   })
@@ -529,6 +532,8 @@ function Interval(fn, time) {
     return timer !== false;
   };
 }
+
+getUserData('0000000000');
 
 //testing("GX010021.MP4");
 // getLastCaptureName(function (fileData) {

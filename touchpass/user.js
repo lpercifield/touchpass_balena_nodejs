@@ -212,4 +212,4 @@ function addGame(payload, callback) {
         callback(jsonData);
     });
 }
-module.exports = { getUserByCard, getHighScore, getUserHighScore, addGame, addUser, getLeaderboardData, getAllUsers };
+module.exports = { getUserByCard, getHighScore, getUserHighScore,getHighScoreByLocation, addGame, addUser, getLeaderboardData, getAllUsers };

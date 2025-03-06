@@ -74,6 +74,19 @@
       height: 100px;
     }
 
+#newGame {
+    background-color: #e74c3c;
+    color: #000000;
+    border: none;
+    padding: 10px 20px;
+    font-size: 35px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+    width: 400px;
+    height: 100px;
+}
+
     .loader {
       border: 16px solid #f3f3f3;
       border-radius: 50%;
@@ -271,7 +284,7 @@
     <div class="team" id="lastScore">LAST GAME SCORE: 0</div>
     <div class="team" id="userHighScore">PLAYER HIGH SCORE: 0</div>
     <div class="team" id="highScore">HIGH SCORE: 0</div>
-
+    <button id="newGame" onclick="resetGame(true)">New Game</button>
     <!-- <div class="separator"></div> -->
 
 
@@ -284,7 +297,7 @@
   <h3>Data: <span id="data"></span></h3>
   <button onclick="openFullscreen();">Open Fullscreen</button>
   <button onclick="closeFullscreen();">Close Fullscreen</button>
-  <button onclick="resetGame(true)">Reset</button>
+  {/* <button onclick="resetGame(true)">Reset</button> */}
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="/js/jquery.min.js"></script>
@@ -404,6 +417,7 @@
     // connection
     function socketConnect() {
       document.getElementById("state").innerHTML = "Socket Connected";
+      document.getElementById("newGame").style.background='#00ff00'
       console.log("Before Setting Listener");
       socket.on("data", (value) => {
         var recJson = JSON.parse(value);
@@ -511,6 +525,7 @@
     // });
     socket.on("disconnect", function () {
       document.getElementById("state").innerHTML = "Socket Disconnected";
+      document.getElementById("newGame").style.background='#ff0000'
       socket.off("data");
       //socketCleanup(); // this is a function to cleanup all listeners, just in case, so you can restart fresh
       // socket.on("connect", function () {
