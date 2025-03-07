@@ -14,39 +14,38 @@
   <%- include('partials/header') %>
 
   <% if (player) { %>
+  <h2>Games for Team <%= player.Metadata.team %>, Player Number <%= player.Metadata.number %></h2>
   <div class="container mt-4">
-    <h2>Team: <b><%= player.Metadata.team %></b>, Player: <b><%= player.Metadata.number %></b></h2>
     <form>
-      <div class="form-group">
-        <label for="team">Type:</label>
-        <select class="form-control" name="gameType" id="gameType">
-          <option value="9">SKILLS</option>
-          <option value="0">RIGHT</option>
-          <option value="1">LEFT</option>
-          <option value="2">RANDOM</option>
-        </select>
-      </div>
-      <button type="button" class="btn btn-primary btn-block" onclick="startGame()">Start Game</button>
+      <label for="team">Type:</label>
+    <select class="form-control" name="gameType" id="gameType">
+      <option value="9">SKILLS</option>
+      <option value="0">RIGHT</option>
+      <option value="1">LEFT</option>
+      <option value="2">RANDOM</option>
+    </select>
     </form>
-
-    <div class="team mt-3" id="totalGames">Number of Games:</div>
-    <div class="team" id="totalScore">Total Points Scored:</div>
-    <div class="team" id="medianReaction">Median Reaction Time:</div>
+    <button onclick="startGame()">Start Game</button>
   </div>
+
+  <div class="team" id="totalGames">Number of Games:</div>
+  <div class="team" id="totalScore">Total Points Scored:</div>
+  <div class="team" id="medianReaction">Median Reaction Time:</div>
   <% } %>
 
-  <div class="container-fluid mt-4">
-    <ul class="game-states list-unstyled">
-      <% gameStates.forEach(game => { %>
-      <li class="game-state mb-4 p-3 border rounded">
-        <h2>TARGETS: <%= game.GameName %> DURATION: <%= game.Duration %></h2>
+  <ul class="game-states">
+    <% gameStates.forEach(game => { %>
+    <li class="game-state <%= game.GameName %>">
+      <div>
+        <h2>TARGETS:<%= game.GameName %> DURATION: <%= game.Duration %></h2>
         <h2>Score: <%= game.Score %></h2>
         <div class="team" id="reactionTime<%= game.GameID %>">Median Reaction Time: </div>
-        <canvas id="reactionTimeChart<%= game.GameID %>" width="400" height="200"></canvas>
-      </li>
-      <% }) %>
-    </ul>
-  </div>
+      </div>
+
+      <canvas id="reactionTimeChart<%= game.GameID %>" width="400" height="200"></canvas>
+    </li>
+    <% }) %>
+  </ul>
 
   <%- include('partials/footer') %>
   <script src="/js/script.js"></script>
@@ -63,7 +62,10 @@
       totalGames++;
       dataArray.shift();
       var gameMedian = calculateMedian(dataArray);
-      document.getElementById("reactionTime"+ game.GameID).innerText = "Median Reaction Time: " + gameMedian + " ms";
+      document.getElementById("reactionTime"+ game.GameID).innerText = "Median Reaction Time: " + gameMedian;
+      // for (let i = 0; i < dataArray.length; i++) {
+      //   console.log(array[i]);
+      // }
       totalReactionTimes = totalReactionTimes.concat(dataArray);
       const ctx = document.getElementById('reactionTimeChart' + game.GameID).getContext('2d');
       new Chart(ctx, {
@@ -100,8 +102,10 @@
     });
     document.getElementById("totalGames").innerText = "Number of Games: " + totalGames;
     document.getElementById("totalScore").innerText = "Total Points Scored: " + totalPoints;
-    document.getElementById("medianReaction").innerText = "Median Reaction Time: " + calculateMedian(totalReactionTimes)+ " ms";
-    
+    document.getElementById("medianReaction").innerText = "Median Reaction Time: " + calculateMedian(totalReactionTimes);
+  //   <div class="team" id="totalGames">Number of Games:</div>
+  // <div class="team" id="totalScore">Total Points Scored:</div>
+  // <div class="team" id="medianReaction">Median Reaction Time:</div>
     function calculateMedian(arr) {
       const sortedArr = [...arr].sort((a, b) => a - b);
       const arrLength = sortedArr.length;
@@ -124,6 +128,12 @@
         value: <%- JSON.stringify(player) %>,
         type: gameType
       }));
+      // var form = document.createElement('form');
+      // form.setAttribute('method', 'post');
+      // form.setAttribute('action', '/start-game');
+      // form.style.display = 'hidden';
+      // document.body.appendChild(form)
+      // form.requestSubmit();
     }
   </script>
 </body>

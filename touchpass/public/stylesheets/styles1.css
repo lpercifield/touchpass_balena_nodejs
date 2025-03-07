@@ -5,7 +5,28 @@ body {
   background-color: #f8f9fa;
 }
 
-h1 {
+header {
+  background-color: #343a40;
+  color: white;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+}
+
+header nav a {
+  color: white;
+  margin: 0 1rem;
+  text-decoration: none;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+h1, h2 {
   font-size: 1.5rem;
   text-align: center;
   margin-bottom: 1.5rem;
@@ -16,7 +37,7 @@ h1 {
 }
 
 @media (max-width: 767px) {
-  h1 {
+  h1, h2 {
     font-size: 1.2rem;
   }
 
@@ -28,6 +49,11 @@ h1 {
     font-size: 1rem;
     padding: 0.75rem 1rem;
   }
+
+  .game-state {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
 }
 
 .mt-4 {
@@ -37,12 +63,35 @@ h1 {
 .container {
   padding: 1rem;
 }
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f4f4;
+
+.container-fluid {
+  padding: 1rem;
 }
+
+.game-state {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.team {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+ul.game-states {
+  padding-left: 0;
+  width: 100%;
+}
+
+ul.game-states .game-state {
+  width: 100%;
+}
+
+////
+
 
 header, footer {
   background-color: #333;
@@ -85,3 +134,4 @@ ul.game-states {
 .game-state.completed {
   border-color: red;
 }
+
