@@ -110,7 +110,7 @@ var reactionTimes = [];
 //var gameLength = 90;
 var timerSeconds = process.env.GAME_LENGTH;
 var playMode = process.env.PLAY_MODE;
-var negativeGoal = (process.env.NEGATIVE_GOAL  === 'true')//(process.env.NEGATIVE_GOAL  === 'true')
+var negativeGoal = (process.env.NEGATIVE_GOAL === 'true')//(process.env.NEGATIVE_GOAL  === 'true')
 var numTargets = deviceArray.length;
 var gameTimer = new Interval(gameTick, 1000);
 var captureVideo = false;
@@ -118,7 +118,8 @@ var gameOver = false;
 var savedGame = false;
 var animateInterval;
 var isRecording = false;
-var gameMode = 0; // RIGHT, LEFT, Random
+var gameMode = process.env.GAME_TYPE; // RIGHT, LEFT, Random
+var gameType = process.env.GAME_TYPE;
 var ackCounter = 0;
 var ackTimeout = null;
 
@@ -126,7 +127,7 @@ var ackTimeout = null;
 //   console.log(data)
 //   events.emit("score-data", data);
 // })
-console.log("NEGATIVE GOAL: ",negativeGoal);
+console.log("NEGATIVE GOAL: ", negativeGoal);
 
 var isDarwin = process.platform === "darwin";
 if (isDarwin) {
@@ -213,20 +214,27 @@ events.addListener("save-user", function (message) {
   createUser(message);
 })
 
-events.addListener("game-reset", function () {
+events.addListener("game-reset", function (gameTypeMessage) {
   console.log("resetting game");
   gameScore = 0;
   gameTimer.stop();
   gameOver = false;
   timerSeconds = process.env.GAME_LENGTH;
   reactionTimes = [];
-  gameMode = 0;
+  if (gameTypeMessage && gameTypeMessage != 9) {
+    gameMode = gameTypeMessage;
+    gameType = gameTypeMessage
+  } else {
+    gameMode = 0;
+    gameType = 9;
+  }
+  console.log("GAME message: ", gameTypeMessage, "Game Type",gameType,"GAME MODE: ",gameMode);
   generateGameColors();
   sendUDPMessage();
   if (isRecording) {
     stopRecording();
   }
-  users.getHighScoreByLocation(process.env.LOCATION,function (data) {
+  users.getHighScoreByLocation(process.env.LOCATION, function (data) {
     //console.log(data)
     events.emit("score-data", data);
   })
@@ -250,7 +258,7 @@ function sendUDPMessage(message, port) {
       activeId: deviceArray[activeTarget],
       nextId: deviceArray[nextTarget],
     });
-    console.log(Date.now()+ " Sending: " + responseJson + "to port - " + "4432");
+    console.log(Date.now() + " Sending: " + responseJson + "to port - " + "4432");
     //const response = "Hellow there!";
     udpSocket.setBroadcast(true);
     udpSocket.send(responseJson, 0, responseJson.length, "4432", ipRange);
@@ -291,17 +299,22 @@ function animateColors(maxAnimations, callback) {
   }, 500);
 }
 function generateGameColors() {
-  switch (gameMode) {
+  //console.log("generate game colors",gameMode);
+  switch (+gameMode) {
     case 2: // RANDOM
-      activeTarget = deviceArray[0];
+      //console.log("SETTING RANDOM COLOR")
+      activeTarget = 0;
       generateRandomNext(0, numDevices - 1);
       break;
+    case 9:
     case 0: // To the RIGHT
+      //console.log("SETTING RIGHT COLOR")
       activeTarget = 0;
       nextTarget = 1;
       targetCounter = 1;
       break;
     case 1: // To the LEFT
+      //console.log("SETTING LEFT COLOR")
       activeTarget = 0;
       nextTarget = numDevices - 1;
       targetCounter = numDevices - 1;
@@ -322,7 +335,7 @@ udpSocket.on("listening", function () {
 
 udpSocket.on("message", function (message, remote) {
   console.log(
-    Date.now()+ " SERVER RECEIVED:",
+    Date.now() + " SERVER RECEIVED:",
     remote.address + ":" + remote.port + " - " + message
   );
   try {
@@ -339,16 +352,20 @@ udpSocket.on("message", function (message, remote) {
       if (!gameOver) {
         gameScore++;
         console.log("GameScore: ", gameScore);
-        if (gameMode === 0 && gameScore === numDevices - 1) {
-          targetCounter = numDevices - 1;
-          gameMode = 1;
-          console.log("Game Mode: ", gameMode);
-          console.log("targetCounter: ", targetCounter);
-        }
-        if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
-          gameMode = 2;
-          console.log("Game Mode: ", gameMode);
-          console.log("targetCounter: ", targetCounter);
+        console.log("GAME TYPE: ", gameType,"GAME MODE: ",gameMode);
+        if (gameType == 9) {
+          console.log("Using Game type 9")
+          if (gameMode === 0 && gameScore === numDevices - 1) {
+            targetCounter = numDevices - 1;
+            gameMode = 1;
+            console.log("Game Mode: ", gameMode);
+            console.log("targetCounter: ", targetCounter);
+          }
+          if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
+            gameMode = 2;
+            console.log("Game Mode: ", gameMode);
+            console.log("targetCounter: ", targetCounter);
+          }
         }
       }
       var sharedJson = {};
@@ -356,7 +373,7 @@ udpSocket.on("message", function (message, remote) {
       sharedJson.reactTime = receivedJson.reactTime;
       events.emit("udpSocket-data", sharedJson);
       activeTarget = nextTarget;
-      switch (gameMode) {
+      switch (+gameMode) {
         case 2:
           generateRandomNext(0, numDevices - 1);
           break;
@@ -377,7 +394,7 @@ udpSocket.on("message", function (message, remote) {
       }
     } else if (receivedJson.goal === 1 && gameOver) {
       events.emit("timer-tick", 0);
-    }else if(receivedJson.goal === 0 && negativeGoal && !gameOver){
+    } else if (receivedJson.goal === 0 && negativeGoal && !gameOver) {
       gameScore--;
       var sharedJson = {};
       sharedJson.score = gameScore;
@@ -385,7 +402,7 @@ udpSocket.on("message", function (message, remote) {
       events.emit("udpSocket-data", sharedJson);
     }
     if (receivedJson.ack === 1) {
-      console.log(Date.now()+ " ACK: ", receivedJson.deviceId);
+      console.log(Date.now() + " ACK: ", receivedJson.deviceId);
       //ackCounter++;
       if (ackTimeout) {
         //console.log("clearing resend interval");
@@ -460,7 +477,7 @@ function gameTick() {
     console.log("Active User", activeUser);
     gameTimer.stop();
     gameOver = true;
-    if(activeUser != null){
+    if (activeUser != null) {
       var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
       gameObj.userID = activeUser.UserID;
       gameObj.locationID = process.env.LOCATION;

@@ -3,38 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/stylesheets/styles1.css">
   <title>Select Player</title>
 </head>
 <body>
   <%- include('partials/header') %>
 
-  <h1>Select Player</h1>
+  <div class="container mt-4">
+    <h1>Select Player</h1>
 
-  <form action="/select-player" method="POST">
-    <label for="team">Team:</label>
-    <select id="team" name="team" required onchange="updatePlayerNumbers()">
-      <option value="">Select a team</option>
-      <% teams.forEach(team => { %>
-        <option value="<%= team %>"><%= team %></option>
-      <% }) %>
-    </select>
-    <br>
-    <label for="number">Player Number:</label>
-    <select id="number" name="number" required>
-      <option value="">Select a player number</option>
-    </select>
-    <br>
-    <button type="submit">Submit</button>
-  </form>
+    <form action="/select-player" method="POST">
+      <div class="form-group">
+        <label for="team">Team:</label>
+        <select class="form-control" id="team" name="team" required onchange="updatePlayerNumbers()">
+          <option value="">Select a team</option>
+          <% teams.forEach(team => { %>
+            <option value="<%= team %>"><%= team %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="number">Player Number:</label>
+        <select class="form-control" id="number" name="number" required>
+          <option value="">Select a player number</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Submit</button>
+    </form>
 
-  <% if (typeof player !== 'undefined') { %>
-    <h2>Player Record</h2>
-    <p>Name: <%= player.name %></p>
-    <p>Team: <%= player.team %></p>
-    <p>Number: <%= player.number %></p>
-    <p>Score: <%= player.score %></p>
-  <% } %>
+    <% if (typeof player !== 'undefined') { %>
+      <div class="mt-4">
+        <h2>Player Record</h2>
+        <p><strong>Name:</strong> <%= player.name %></p>
+        <p><strong>Team:</strong> <%= player.team %></p>
+        <p><strong>Number:</strong> <%= player.number %></p>
+        <p><strong>Score:</strong> <%= player.score %></p>
+      </div>
+    <% } %>
+  </div>
 
   <%- include('partials/footer') %>
   <script>
@@ -52,7 +59,6 @@
       players.filter(player => player.Metadata.team === selectedTeam).forEach(player => {
         const option = document.createElement('option');
         option.value = player.UserID;
-        //option.userID = player.userID;
         option.textContent = player.Metadata.number;
         numberSelect.appendChild(option);
       });

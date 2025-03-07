@@ -60,12 +60,14 @@ app.post('/select-player', (req, res) => {
 
 app.post('/start-game', (req, res) => {
   const gamePlayer = req.body.value;
+  const gameType = req.body.type;
   console.log("START GAME", gamePlayer);
+  console.log("TYPE", gameType);
   events.emit("user-data", gamePlayer);
   users.getUserHighScore(gamePlayer.UserID, function (scores) {
     //console.log(scores);
     events.emit("user-score-data", scores);
-    events.emit("game-reset");
+    events.emit("game-reset",+gameType);
   })
   // const { team, number } = req.body;
   // //const player = players.find(p => p.team === team && p.number === parseInt(number));

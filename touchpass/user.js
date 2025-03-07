@@ -36,10 +36,10 @@ function postAction(action, payload, callback) {
             //console.log(response.body);
             callback(JSON.parse(response.body));
             //return response.body;
-        } else if (response.statusCode != 200) {
-            console.log("User post action: ", action, response.body);
+        // } else if (response.statusCode != 200) {
+        //     console.log("User post action: ", action, response.body);
         } else {
-            console.log("User post action: ", action, error);
+            console.log("User post action ERROR: ", action, response, error);
         }
 
     });
