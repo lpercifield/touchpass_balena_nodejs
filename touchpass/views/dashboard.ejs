@@ -20,10 +20,10 @@
       <div class="form-group">
         <label for="team">Type:</label>
         <select class="form-control" name="gameType" id="gameType">
-          <option value="9">SKILLS</option>
-          <option value="0">RIGHT</option>
-          <option value="1">LEFT</option>
-          <option value="2">RANDOM</option>
+          <option value=9>SKILLS</option>
+          <option value=0>RIGHT</option>
+          <option value=1>LEFT</option>
+          <option value=2>RANDOM</option>
         </select>
       </div>
       <button type="button" class="btn btn-primary btn-block" onclick="startGame()">Start Game</button>
@@ -42,6 +42,7 @@
         <h2>TARGETS: <%= game.GameName %> DURATION: <%= game.Duration %></h2>
         <h2>Score: <%= game.Score %></h2>
         <div class="team" id="reactionTime<%= game.GameID %>">Median Reaction Time: </div>
+        <div class="team" id="time<%= game.GameID %>"><%= new Date(game.Timestamp) %></div>
         <canvas id="reactionTimeChart<%= game.GameID %>" width="400" height="200"></canvas>
       </li>
       <% }) %>

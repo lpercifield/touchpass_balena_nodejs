@@ -1,5 +1,9 @@
 var needle = require('needle');
-var url = "https://uo2rlwa82g.execute-api.us-east-1.amazonaws.com/default/x-game?action="
+var url = "https://yrexy3ytq8.execute-api.us-east-1.amazonaws.com/default/x-game?action="
+
+//https://w08v3r8yrd.execute-api.us-east-1.amazonaws.com/default/x-game
+//"https://uo2rlwa82g.execute-api.us-east-1.amazonaws.com/default/x-game?action="
+//https://yrexy3ytq8.execute-api.us-east-1.amazonaws.com/default/x-game?action=docs
 
 //https://uo2rlwa82g.execute-api.us-east-1.amazonaws.com/default/x-game?action=addUser&endpoint=default/x-game
 //https://uo2rlwa82g.execute-api.us-east-1.amazonaws.com/default/x-game?action=getAllUsers&endpoint=default/x-game
@@ -7,16 +11,17 @@ var url = "https://uo2rlwa82g.execute-api.us-east-1.amazonaws.com/default/x-game
 function getAction(action, callback) {
     needle.get(url + action + "&endpoint=default/x-game", function (error, response) {
         if (!error && response.statusCode == 200) {
-            //console.log(response.body);
-            callback(JSON.parse(response.body));
+            //console.log(action,response.body);
+            callback(response.body);
             //return response.body;
         }
         // else if (response.statusCode != 200) {
         //     console.log("User get action: ", action, response.body);
         // } 
-        else {
-            console.log("User get action: ", action, error);
-        }
+        // else {
+        //     console.log("User get action: ", JSON.parse(response.body));
+        //     callback("Error");
+        // }
 
     });
 }
@@ -34,10 +39,10 @@ function postAction(action, payload, callback) {
     needle.post(url + action + "&endpoint=default/x-game", JSON.stringify(payload), options, function (error, response) {
         if (!error && response.statusCode == 200) {
             //console.log(response.body);
-            callback(JSON.parse(response.body));
+            callback(response.body);
             //return response.body;
-        // } else if (response.statusCode != 200) {
-        //     console.log("User post action: ", action, response.body);
+            // } else if (response.statusCode != 200) {
+            //     console.log("User post action: ", action, response.body);
         } else {
             console.log("User post action ERROR: ", action, response, error);
         }
@@ -57,7 +62,7 @@ function getHighScore(callback) {
         callback(jsonAsArray);
     });
 }
-function getHighScoreByLocation(location,callback) {
+function getHighScoreByLocation(location, callback) {
     //var obj = null;
     var payload = {};
     payload.locationID = location;
@@ -66,7 +71,7 @@ function getHighScoreByLocation(location,callback) {
     // var jsonData = postAction("addUser", payload, function (jsonData) {
     //     callback(jsonData);
     // });
-    var data = postAction("queryGamesByLocationSortedByScore",payload, function (jsonData) {
+    var data = postAction("queryGamesByLocationSortedByScore", payload, function (jsonData) {
         const jsonAsArray = Object.keys(jsonData).map(function (key) {
             return jsonData[key];
         })
@@ -112,47 +117,54 @@ function getUserByCard(cardId, callback) {
     });
 }
 
-function getLeaderboardData(count,location, callback) {
+function getLeaderboardData(count, location, callback) {
 
     var scorecount = count;
     //console.log("scorecount", scorecount);
     var leaderboardObj = [];
-    getHighScoreByLocation(location,function (highScores) {
+    getHighScoreByLocation(location, function (highScores) {
         const scoresArray = Object.keys(highScores).map(function (key) {
             return highScores[key];
         })
             .sort(function (itemA, itemB) {
                 return itemB.Score - itemA.Score;
             });
-        console.log("scoresArray",scoresArray.length);
-        if(count == 0){
+        console.log("scoresArray", scoresArray.length);
+        if (count == 0) {
             scorecount = scoresArray.length;
         }
         const users = getAction("getAllUsers", function (usersArray) {
-            //console.log("userArray", usersArray);
+            //console.log("scoresArray", scoresArray);
             for (let i = 0; i < scorecount; i++) {
                 //console.log("Loop");
-                var found = usersArray.filter(
-                    function (filterdata) { return filterdata.UserID == scoresArray[i].UserID }
-                );
-                if (!Array.isArray(found) || !found.length) {
-                    // array does not exist, is not an array, or is empty
-                    // ⇒ do not attempt to process array
-                    var userScore = scoresArray[i];
-                    userScore.name = "Deleted User"
-                    //console.log("userScore",userScore)
-                    leaderboardObj.push(userScore)
-                } else {
-                    // var arrayFound = usersArray.items.filter(function(item) {
-                    //     return item.UserID == scoresArray[i].UserID;
-                    // });
-                    // //usersArray.find(scoresArray[i].UserID);
-                    //console.log("arrayFound", found);
-                    var userScore = scoresArray[i];
-                    userScore.name = found[0].UserName
-                    //console.log("userScore",userScore)
-                    leaderboardObj.push(userScore)
-                    // console.log("leaderboardObj",leaderboardObj)
+                try {
+                    var found = usersArray.filter(
+                        function (filterdata) { return filterdata.UserID == scoresArray[i].UserID } //scoresArray[i].UserID
+                    );
+                    if (!Array.isArray(found) || !found.length) {
+                        // array does not exist, is not an array, or is empty
+                        // ⇒ do not attempt to process array
+                        var userScore = scoresArray[i];
+                        userScore.name = "Deleted User"
+                        //console.log("userScore",userScore)
+                        leaderboardObj.push(userScore)
+                    } else {
+                        // var arrayFound = usersArray.items.filter(function(item) {
+                        //     return item.UserID == scoresArray[i].UserID;
+                        // });
+                        // //usersArray.find(scoresArray[i].UserID);
+                        //console.log("arrayFound", found);
+                        var userScore = scoresArray[i];
+                        userScore.name = found[0].UserName
+                        //console.log("userScore",userScore)
+                        leaderboardObj.push(userScore)
+                        // console.log("leaderboardObj",leaderboardObj)
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+                    // Expected output: ReferenceError: nonExistentFunction is not defined
+                    // (Note: the exact output may be browser-dependent)
                 }
                 // if (found !== undefined || found.length != 0) {
 
@@ -170,7 +182,7 @@ function getLeaderboardData(count,location, callback) {
 
     })
 }
-function getAllUsers(callback){
+function getAllUsers(callback) {
     const users = getAction("getAllUsers", function (usersArray) {
         callback(usersArray);
     })
@@ -198,7 +210,7 @@ function addUser(message, callback) {
     var payload = {};
     payload.credits = 10;
     payload.userName = message.team + " " + message.jerseyNumber;
-    payload.metadata = { "cardId": message.cardId, "team":message.team, "number":message.jerseyNumber }
+    payload.metadata = { "cardId": message.cardId, "team": message.team, "number": message.jerseyNumber }
     var jsonData = postAction("addUser", payload, function (jsonData) {
         callback(jsonData);
     });
@@ -212,4 +224,4 @@ function addGame(payload, callback) {
         callback(jsonData);
     });
 }
-module.exports = { getUserByCard, getHighScore, getUserHighScore,getHighScoreByLocation, addGame, addUser, getLeaderboardData, getAllUsers };
+module.exports = { getUserByCard, getHighScore, getUserHighScore, getHighScoreByLocation, addGame, addUser, getLeaderboardData, getAllUsers };

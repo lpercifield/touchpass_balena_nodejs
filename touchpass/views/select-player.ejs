@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="/stylesheets/styles1.css">
   <title>Select Player</title>
 </head>
+
 <body>
   <%- include('partials/header') %>
 
@@ -19,7 +21,7 @@
         <select class="form-control" id="team" name="team" required onchange="updatePlayerNumbers()">
           <option value="">Select a team</option>
           <% teams.forEach(team => { %>
-            <option value="<%= team %>"><%= team %></option>
+          <option value="<%= team %>"><%= team %></option>
           <% }) %>
         </select>
       </div>
@@ -31,17 +33,111 @@
       </div>
       <button type="submit" class="btn btn-primary btn-block">Submit</button>
     </form>
+    <span>&nbsp;</span>
+    <button class="btn btn-primary btn-block" onclick="newPlayer()">New Player</button>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="team">ADD NEW USER</div>
+        <!-- <label for="pet-select">Choose a pet:</label> -->
+        <div class="ext-box">
+          <div class="int-box">
+            <select name="team" id="team-select" form="userform">
+             <% teams.forEach(team => { %>
+          <option value="<%= team %>"><%= team %></option>
+          <% }) %>
+            </select>
+
+            <div class="team" id="jersey">JERSEY NUMBER</div>
+            <input id="jerseyNumber" name="jerseyNumber" class="jersey" type="tel" min="1" max=“999” maxlength="3" pattern="\d*" form="userform" />
+            <form id="userform">
+              <input type="text" hidden="true" name="cardId" id="cardId" value="987654321" />
+              <button id="saveUser" type="submit" style="font-size: xxx-large;margin-top: 10%;">SAVE</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
 
     <% if (typeof player !== 'undefined') { %>
-      <div class="mt-4">
-        <h2>Player Record</h2>
-        <p><strong>Name:</strong> <%= player.name %></p>
-        <p><strong>Team:</strong> <%= player.team %></p>
-        <p><strong>Number:</strong> <%= player.number %></p>
-        <p><strong>Score:</strong> <%= player.score %></p>
-      </div>
+    <div class="mt-4">
+      <h2>Player Record</h2>
+      <p><strong>Name:</strong> <%= player.name %></p>
+      <p><strong>Team:</strong> <%= player.team %></p>
+      <p><strong>Number:</strong> <%= player.number %></p>
+      <p><strong>Score:</strong> <%= player.score %></p>
+    </div>
     <% } %>
   </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    var modal = document.getElementById("myModal");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    function newPlayer() {
+      // console.log(value);
+      // let selectTag = document.getElementById('team-select');
+      // // using the function:
+      // removeOptions(selectTag);
+      // document.getElementById('cardId').value = value.card;
+      // value.teams.map((team, i) => {
+      //   let opt = document.createElement("option");
+      //   opt.value = team; // the index
+      //   opt.innerHTML = team;
+      //   selectTag.append(opt);
+      // });
+      modal.style.display = "block";
+    }
+    var form = document.getElementById('userform');
+    if (form.attachEvent) {
+      form.attachEvent("submit", processForm);
+    } else {
+      form.addEventListener("submit", processForm);
+    }
+    function processForm(e) {
+      if (e.preventDefault) e.preventDefault();
+      console.log("FROM SAVE USER")
+
+      var formData = new FormData(form);
+      // output as an object
+      console.log(Object.fromEntries(formData));
+      console.log(Object.fromEntries(formData).team);
+      console.log(Object.fromEntries(formData).cardId);
+      console.log(Object.fromEntries(formData).jerseyNumber);
+      socket.emit("save-user", Object.fromEntries(formData));
+      modal.style.display = "none";
+
+
+      // ...or iterate through the name-value pairs
+      // for (var pair of formData.entries()) {
+      //   console.log(pair[0] + ": " + pair[1]);
+      // }
+      /* do what you want with the form */
+
+      // You must return false to prevent the default form behavior
+      return false;
+    }
+  </script>
 
   <%- include('partials/footer') %>
   <script>
@@ -65,4 +161,5 @@
     }
   </script>
 </body>
+
 </html>

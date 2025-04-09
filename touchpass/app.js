@@ -1,17 +1,9 @@
+require('dotenv').config();
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-
-var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
-var scoreboardRouter = require("./routes/scoreboard");
-var leaderboardRouter = require("./routes/leaderboard");
-
-const users = require("./user.js");
-
-require('dotenv').config();
 
 //const net = require("net");
 
@@ -20,11 +12,42 @@ var app = express();
 var e = require("events");
 var events = new e.EventEmitter();
 app.set("event", events);
-// var io = app.get("socketio");
-
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
+
+
+
+
+var indexRouter = require("./routes/index");
+var usersRouter = require("./routes/users");
+var scoreboardRouter = require("./routes/scoreboard");
+var leaderboardRouter = require("./routes/leaderboard");
+
+const users = require("./user.js");
+
+const { getSdk } = require('balena-sdk');
+
+const balena = getSdk({
+  apiUrl: "https://api.balena-cloud.com/"
+});
+var publicURL;
+
+(async () => {
+  await balena.auth.loginWithToken(process.env.BALENA_API_KEY);
+  await balena.models.device.getDeviceUrl(process.env.BALENA_DEVICE_UUID).then(function (url) {
+    //console.log(url);
+    publicURL = url+"/select-player";
+  });
+})();
+
+
+
+
+
+// var io = app.get("socketio");
+
+
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -34,7 +57,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/scoreboard", scoreboardRouter);
+//app.use("/scoreboard", scoreboardRouter);
 app.use("/leaderboard", leaderboardRouter);
 
 var fs = require('fs');
@@ -44,7 +67,7 @@ var allUsersJson = "";
 // Route to render the select player form
 app.get('/select-player', (req, res) => {
   users.getAllUsers(function (allUsers) {
-    console.log(allUsers);
+    //console.log(allUsers);
     allUsersJson = allUsers;
     const teams = [...new Set(allUsers.map(player => player.Metadata.team))];
     res.render('select-player', { teams, allUsers });
@@ -74,6 +97,15 @@ app.post('/start-game', (req, res) => {
   // res.redirect(`/dashboard?player=${number}`);
   res.end();
 });
+
+/* GET users listing. */
+app.get("/scoreboard", function (req, res, next) {
+  // console.log(randomKey);
+  res.render("scoreboard", { title: "Quikick ScoreBoard",publicURL });
+
+});
+
+
 // Route to render the dashboard
 app.get('/dashboard', (req, res) => {
   const playerNumber = req.query.player;

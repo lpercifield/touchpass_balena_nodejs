@@ -214,6 +214,11 @@ events.addListener("save-user", function (message) {
   createUser(message);
 })
 
+events.addListener("user-data",function(message){
+  activeUser = message;
+  console.log("setting active user",activeUser);
+})
+
 events.addListener("game-reset", function (gameTypeMessage) {
   console.log("resetting game");
   gameScore = 0;
@@ -484,7 +489,7 @@ function gameTick() {
       gameObj.gameName = numDevices.toString();
       gameObj.duration = process.env.GAME_LENGTH;
       gameObj.device = process.env.BALENA_DEVICE_NAME_AT_INIT;
-      gameObj.metadata = { "reactionTimes": reactionTimes }; //{"data":"test"}
+      gameObj.metadata = { "reactionTimes": reactionTimes, "gameType":gameType }; //{"data":"test"}
       gameObj.score = gameScore * -1;
       console.log(gameObj)
       users.addGame(gameObj, function (data) {

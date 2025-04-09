@@ -74,18 +74,18 @@
       height: 100px;
     }
 
-#newGame {
-    background-color: #e74c3c;
-    color: #000000;
-    border: none;
-    padding: 10px 20px;
-    font-size: 35px;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 10px;
-    width: 400px;
-    height: 100px;
-}
+    #newGame {
+      background-color: #e74c3c;
+      color: #000000;
+      border: none;
+      padding: 10px 20px;
+      font-size: 35px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 10px;
+      width: 400px;
+      height: 100px;
+    }
 
     .loader {
       border: 16px solid #f3f3f3;
@@ -261,14 +261,11 @@
             </select>
 
             <div class="team" id="jersey">JERSEY NUMBER</div>
-            <input id="jerseyNumber" name="jerseyNumber" class="jersey" type="tel" min="1" max=“99” maxlength="2"
-              pattern="\d*" form="userform" />
+            <input id="jerseyNumber" name="jerseyNumber" class="jersey" type="tel" min="1" max=“999” maxlength="3" pattern="\d*" form="userform" />
             <form id="userform">
               <input type="text" hidden="true" name="cardId" id="cardId" />
-              <!-- <input type="submit" style="font-size: xxx-large;margin-top: 10%;">SAVE</input> -->
               <button id="saveUser" type="submit" style="font-size: xxx-large;margin-top: 10%;">SAVE</button>
             </form>
-            <!-- <button id="saveUser" onclick="saveUser()" style="font-size: xxx-large;margin-top: 10%;">SAVE</button> -->
           </div>
         </div>
 
@@ -297,11 +294,11 @@
   <h3>Data: <span id="data"></span></h3>
   <button onclick="openFullscreen();">Open Fullscreen</button>
   <button onclick="closeFullscreen();">Close Fullscreen</button>
-  {/* <button onclick="resetGame(true)">Reset</button> */}
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="/js/jquery.min.js"></script>
   <script type="text/javascript" src="/js/qrcode.js"></script>
+
 
   <script>
     /* Get the documentElement (<html>) to display the page in fullscreen */
@@ -311,9 +308,11 @@
     function openFullscreen() {
       if (elem.requestFullscreen) {
         elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) { /* Safari */
+      } else if (elem.webkitRequestFullscreen) {
+        /* Safari */
         elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { /* IE11 */
+      } else if (elem.msRequestFullscreen) {
+        /* IE11 */
         elem.msRequestFullscreen();
       }
     }
@@ -322,9 +321,11 @@
     function closeFullscreen() {
       if (document.exitFullscreen) {
         document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) { /* Safari */
+      } else if (document.webkitExitFullscreen) {
+        /* Safari */
         document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) { /* IE11 */
+      } else if (document.msExitFullscreen) {
+        /* IE11 */
         document.msExitFullscreen();
       }
     }
@@ -337,12 +338,12 @@
     var span = document.getElementsByClassName("close")[0];
 
     // When the user clicks on <span> (x), close the modal
-    span.onclick = function () {
+    span.onclick = function() {
       modal.style.display = "none";
     }
 
     // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function (event) {
+    window.onclick = function(event) {
       if (event.target == modal) {
         modal.style.display = "none";
       }
@@ -364,15 +365,20 @@
       colorDark: "#ffffff",
       colorLight: "#000000",
     });
+    document.body.addEventListener('click', clearQR, true);
 
     function makeCode(url) {
       document.getElementById("qrcode").style.display = "block";
       qrcode.makeCode(url);
     }
+    function clearQR(){
+      document.getElementById("qrcode").style.display = "none";
+    }
 
     function saveUser() {
       //console.log("FROM SAVE USER")
     }
+
     function processForm(e) {
       if (e.preventDefault) e.preventDefault();
       console.log("FROM SAVE USER")
@@ -403,6 +409,7 @@
     } else {
       form.addEventListener("submit", processForm);
     }
+
     function removeOptions(selectElement) {
       var i, L = selectElement.options.length - 1;
       for (i = L; i >= 0; i--) {
@@ -411,13 +418,13 @@
     }
 
 
-
-    //makeCode();
+    const players = <%- JSON.stringify(publicURL) %>;
+    makeCode(players);
 
     // connection
     function socketConnect() {
       document.getElementById("state").innerHTML = "Socket Connected";
-      document.getElementById("newGame").style.background='#00ff00'
+      document.getElementById("newGame").style.background = '#00ff00'
       console.log("Before Setting Listener");
       socket.on("data", (value) => {
         var recJson = JSON.parse(value);
@@ -523,9 +530,9 @@
     //     socket.connect();
     //   }, 1000);
     // });
-    socket.on("disconnect", function () {
+    socket.on("disconnect", function() {
       document.getElementById("state").innerHTML = "Socket Disconnected";
-      document.getElementById("newGame").style.background='#ff0000'
+      document.getElementById("newGame").style.background = '#ff0000'
       socket.off("data");
       //socketCleanup(); // this is a function to cleanup all listeners, just in case, so you can restart fresh
       // socket.on("connect", function () {
@@ -538,6 +545,7 @@
       teamAScore = score;
       document.getElementById("teamAScore").innerText = teamAScore;
     }
+
     function captueVideoClicked(cb) {
       //cb.checked
       socket.emit("capture-video", cb.checked);
