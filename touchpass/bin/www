@@ -9,6 +9,7 @@ var debug = require('debug')('soccergame:server');
 var http = require('http');
 let socketapi = require("../socketapi");
 let game = require("../game");
+let mqttServer = require("../aedesServer");
 let leaderboard = require("../leaderboard");
 
 /**

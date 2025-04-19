@@ -45,6 +45,20 @@ try {
 const parser = require('mag-stripe');
 const users = require("./user.js");
 
+const mqtt = require("mqtt");
+const mqttclient = mqtt.connect("mqtt://localhost");
+
+mqttclient.on("connect", () => {
+  mqttclient.subscribe("quikick/goal", (err) => {
+    if (!err) {
+      console.log("SUCCESS - MQTT Subscribe")
+      //mqttclient.publish("presence", "Hello mqtt");
+    }
+  });
+});
+
+
+
 
 // import {
 //   getFreshSLAccessTokenFromRefreshToken
@@ -69,7 +83,7 @@ https://docs.balena.io/learn/develop/multicontainer/#labels
 
 //order: 5880456,5775764,5880508,5882560,5878116,5880848
 //BEACON: 5880456,5880848,5878116,5882560,5880508,5775764
-//RENO: 5875620,5807792,5867696,5799664,5806000,5800040 -- 5875620,5807792,5800040,5806000,5867696,5799664
+//RENO: 5875620,5807792,5867696,5799664,5806000,5800040 -- 5875620,5807792,5800040,5806000,5867696,5799664 
 
 //5875620,5807792,5800040,5806000,5867696,5799664
 
@@ -122,6 +136,7 @@ var gameMode = process.env.GAME_TYPE; // RIGHT, LEFT, Random
 var gameType = process.env.GAME_TYPE;
 var ackCounter = 0;
 var ackTimeout = null;
+var lastMessageTime = 0;
 
 // users.getHighScore(function(data){
 //   console.log(data)
@@ -256,17 +271,23 @@ events.addListener("capture-video", function (message) {
 
 function sendUDPMessage(message, port) {
   try {
-    console.log("Active Target", activeTarget);
-    console.log("Next Target", nextTarget);
+    //console.log("Active Target", activeTarget);
+    //console.log("Next Target", nextTarget);
     const responseJson = JSON.stringify({
-      messageType: 1,
-      activeId: deviceArray[activeTarget],
-      nextId: deviceArray[nextTarget],
+      mType: 1,
+      aId: deviceArray[activeTarget],
+      nId: deviceArray[nextTarget],
     });
     console.log(Date.now() + " Sending: " + responseJson + "to port - " + "4432");
     //const response = "Hellow there!";
-    udpSocket.setBroadcast(true);
-    udpSocket.send(responseJson, 0, responseJson.length, "4432", ipRange);
+    mqttclient.publish("quikick/target", responseJson,{qos:2});
+    const scoreJson = JSON.stringify({
+      lType: 2,
+      score: gameScore
+    });
+    mqttclient.publish("quikick/score", scoreJson,{qos:2});
+    //udpSocket.setBroadcast(true);
+    //udpSocket.send(responseJson, 0, responseJson.length, "4432", ipRange);
   } catch (e) {
     console.log(e);
     // expected output: SyntaxError: Unexpected token o in JSON at position 1
@@ -337,7 +358,113 @@ udpSocket.on("listening", function () {
   //   udpSocket.send(message, 0, message.length, 1234, "255.255.255.255");
   // }, 5000);
 });
+mqttclient.on("message", (topic, message) => {
+  // message is Buffer
+  console.log("Received", message.toString());
+  console.log("Message Time Diff", Date.now()-lastMessageTime);
+  lastMessageTime = Date.now();
+  try {
+    var receivedJson = JSON.parse(message.toString());
+    //console.log(receivedJson.count);
+    // expected output: 42
+    // console.log(receivedJson.result);
+    // expected output: true
+    if (receivedJson.goal === 1 && !gameOver) {
+      reactionTimes.push(receivedJson.reactTime);
+      if (!gameTimer.isRunning()) {
+        gameTimer.start();
+      }
+      if (!gameOver) {
+        gameScore++;
+        console.log("GameScore: ", gameScore);
+        //console.log("GAME TYPE: ", gameType,"GAME MODE: ",gameMode);
+        if (gameType == 9) {
+          //console.log("Using Game type 9")
+          if (gameMode === 0 && gameScore === numDevices - 1) {
+            targetCounter = numDevices - 1;
+            gameMode = 1;
+            console.log("Game Mode: ", gameMode);
+            console.log("targetCounter: ", targetCounter);
+          }
+          if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
+            gameMode = 2;
+            console.log("Game Mode: ", gameMode);
+            console.log("targetCounter: ", targetCounter);
+          }
+        }
+      }
+      var sharedJson = {};
+      sharedJson.score = gameScore;
+      sharedJson.reactTime = receivedJson.reactTime;
+      events.emit("udpSocket-data", sharedJson);
+      activeTarget = nextTarget;
+      switch (+gameMode) {
+        case 2:
+          generateRandomNext(0, numDevices - 1);
+          break;
+        case 0:
+          targetCounter++;
+          if (targetCounter === numDevices) {
+            targetCounter = 0;
+          }
+          nextTarget = targetCounter;
+          break;
+        case 1:
+          targetCounter--;
+          if (targetCounter < 0) {
+            targetCounter = numDevices - 1;
+          }
+          nextTarget = targetCounter;
+          break;
+      }
+    } else if (receivedJson.goal === 1 && gameOver) {
+      events.emit("timer-tick", 0);
+    } else if (receivedJson.goal === 0 && negativeGoal && !gameOver) {
+      gameScore--;
+      var sharedJson = {};
+      sharedJson.score = gameScore;
+      sharedJson.reactTime = receivedJson.reactTime;
+      events.emit("udpSocket-data", sharedJson);
+    }
+    if (receivedJson.ack === 1) {
+      console.log(Date.now() + " ACK: ", receivedJson.deviceId);
+      //ackCounter++;
+      if (ackTimeout) {
+        //console.log("clearing resend interval");
+        clearInterval(ackTimeout);
+        ackTimeout = null;
+      }
+    } else {
+      if (!gameOver) {
+        sendUDPMessage();
+        //
+        // if (ackTimeout === null) {
+        //   //console.log("setting resend interval")
+        //   ackTimeout = setInterval(function () {
+        //     // if(ackCounter<2){
+        //     console.log("Not enough ACKs");
+        //     sendUDPMessage();
+        //     // }
+        //   }, 750);
+        // }
+      }
 
+    }
+
+    // const response = JSON.stringify({
+    //   activeId: deviceArray[activeTarget],
+    //   nextId: deviceArray[nextTarget],
+    // });
+    // console.log("Sending: " + response + "to port - " + remote.port);
+    // //const response = "Hellow there!";
+    // udpSocket.setBroadcast(true);
+    // udpSocket.send(response, 0, response.length, remote.port, ipRange);
+  } catch (e) {
+    console.log(e);
+    // expected output: SyntaxError: Unexpected token o in JSON at position 1
+  }
+  //client.end();
+});
 udpSocket.on("message", function (message, remote) {
   console.log(
     Date.now() + " SERVER RECEIVED:",
@@ -482,6 +609,10 @@ function gameTick() {
     console.log("Active User", activeUser);
     gameTimer.stop();
     gameOver = true;
+    const scoreJson = JSON.stringify({
+      lType: 0
+    });
+    mqttclient.publish("quikick/score", scoreJson,{qos:2});
     if (activeUser != null) {
       var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
       gameObj.userID = activeUser.UserID;

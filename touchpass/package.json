@@ -6,7 +6,9 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "aedes": "^0.51.3",
     "balena-sdk": "^21.2.1",
+    "cjs": "^0.0.11",
     "cookie-parser": "~1.4.4",
     "cross-fetch": "^4.0.0",
     "debug": "~2.6.9",
@@ -17,6 +19,7 @@
     "http-errors": "~1.6.3",
     "mag-stripe": "^1.0.8",
     "morgan": "~1.9.1",
+    "mqtt": "^5.11.0",
     "needle": "^3.3.1",
     "node-hid": "^3.1.2",
     "request": "^2.88.2",

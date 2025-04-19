@@ -16,14 +16,19 @@ const arduino = require("./arduino/updateESP32.js");
 // ];
 
 //RENO
+// const ipArray = [
+//   "10.42.0.120",
+//   "10.42.0.14",
+//   "10.42.0.111",
+//   "10.42.0.133",
+//   "10.42.0.220",
+//   "10.42.0.77"
+// ];
 const ipArray = [
-  "10.42.0.120",
-  "10.42.0.14",
-  "10.42.0.111",
-  "10.42.0.133",
-  "10.42.0.220",
-  "10.42.0.77"
-];
+    "192.168.86.34",
+    "192.168.86.35",
+    "192.168.86.250"
+  ];
 var counter = 0;
 // const ipArray = [
 //   "10.42.0.14"
@@ -32,7 +37,7 @@ var counter = 0;
 var args = process.argv.slice(2);
 
 function runUpdate(arrayToUse) {
-    arduino.doUpdate(arrayToUse[counter], './arduino/touch_pass_TEST_Quikick2_50.ino.bin', function () {
+    arduino.doUpdate(arrayToUse[counter], './arduino/quikick_002_test.ino.bin', function () {
         console.log("Done: ", arrayToUse[counter]);
         counter++;
         //runUpdate();
