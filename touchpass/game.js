@@ -49,7 +49,7 @@ const mqtt = require("mqtt");
 const mqttclient = mqtt.connect("mqtt://localhost");
 
 mqttclient.on("connect", () => {
-  mqttclient.subscribe("quikick/goal", (err) => {
+  mqttclient.subscribe("quikick/goal", {qos:2}, (err) => {
     if (!err) {
       console.log("SUCCESS - MQTT Subscribe")
       //mqttclient.publish("presence", "Hello mqtt");
@@ -278,14 +278,14 @@ function sendUDPMessage(message, port) {
       aId: deviceArray[activeTarget],
       nId: deviceArray[nextTarget],
     });
-    console.log(Date.now() + " Sending: " + responseJson + "to port - " + "4432");
+    //console.log(Date.now() + " Sending: " + responseJson + "to port - " + "4432");
     //const response = "Hellow there!";
     mqttclient.publish("quikick/target", responseJson,{qos:2});
     const scoreJson = JSON.stringify({
       lType: 2,
       score: gameScore
     });
-    mqttclient.publish("quikick/score", scoreJson,{qos:2});
+    mqttclient.publish("quikick/score", scoreJson,{qos:0});
     //udpSocket.setBroadcast(true);
     //udpSocket.send(responseJson, 0, responseJson.length, "4432", ipRange);
   } catch (e) {
@@ -360,8 +360,8 @@ udpSocket.on("listening", function () {
 });
 mqttclient.on("message", (topic, message) => {
   // message is Buffer
-  console.log("Received", message.toString());
-  console.log("Message Time Diff", Date.now()-lastMessageTime);
+  //console.log("Received", message.toString());
+  //console.log("Message Time Diff", Date.now()-lastMessageTime);
   lastMessageTime = Date.now();
   try {
     var receivedJson = JSON.parse(message.toString());
@@ -376,7 +376,7 @@ mqttclient.on("message", (topic, message) => {
       }
       if (!gameOver) {
         gameScore++;
-        console.log("GameScore: ", gameScore);
+        //console.log("GameScore: ", gameScore);
         //console.log("GAME TYPE: ", gameType,"GAME MODE: ",gameMode);
         if (gameType == 9) {
           //console.log("Using Game type 9")
@@ -612,7 +612,10 @@ function gameTick() {
     const scoreJson = JSON.stringify({
       lType: 0
     });
-    mqttclient.publish("quikick/score", scoreJson,{qos:2});
+    setTimeout(function(){
+      mqttclient.publish("quikick/score", scoreJson,{qos:2});
+    },10000)
+    
     if (activeUser != null) {
       var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
       gameObj.userID = activeUser.UserID;

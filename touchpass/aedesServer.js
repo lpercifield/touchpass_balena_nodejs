@@ -15,7 +15,7 @@ aedes.on('connectionError', function (client, err) {
 
 aedes.on('publish', function (packet, client) {
   if (client) {
-    console.log('message from client', client.id, packet.topic, JSON.parse(packet.payload.toString()))
+    //console.log('message from client', client.id, packet.topic, JSON.parse(packet.payload.toString()))
   }
 })
 

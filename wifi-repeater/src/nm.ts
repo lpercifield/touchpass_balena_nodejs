@@ -28,7 +28,10 @@ export interface WirelessNetwork {
 declare const Buffer;
 const nm: string = 'org.freedesktop.NetworkManager';
 var a = "rsn";
-var buffer = Buffer.from(a);
+var proto = Buffer.from(a);
+
+var b = "ccmp";
+var pairwise = Buffer.from(b);
 
 // Wireless
 export const createAccessPoint = async (device: WirelessNetwork): Promise<any> => {
@@ -63,7 +66,9 @@ export const createAccessPoint = async (device: WirelessNetwork): Promise<any> =
         [
           ["key-mgmt", ["s", "wpa-psk"]],
           ["psk", ["s", device.password]],
-          ["proto", ["as", [buffer]]],
+          ["proto", ["as", [proto]]],
+          ["pairwise", ["as", [pairwise]]],
+          ["group", ["as", [pairwise]]],
         ],
       ],
       ["ipv4", [["method", ["s", "shared"]]]],
