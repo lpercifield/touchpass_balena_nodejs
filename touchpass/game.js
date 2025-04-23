@@ -49,7 +49,7 @@ const mqtt = require("mqtt");
 const mqttclient = mqtt.connect("mqtt://localhost");
 
 mqttclient.on("connect", () => {
-  mqttclient.subscribe("quikick/goal", {qos:2}, (err) => {
+  mqttclient.subscribe("quikick/goal", { qos: 2 }, (err) => {
     if (!err) {
       console.log("SUCCESS - MQTT Subscribe")
       //mqttclient.publish("presence", "Hello mqtt");
@@ -137,6 +137,52 @@ var gameType = process.env.GAME_TYPE;
 var ackCounter = 0;
 var ackTimeout = null;
 var lastMessageTime = 0;
+const tournamentTarget = [
+  0, 1, 2, 3, 4, 5, 0, 5, 4, 3, 2, 1,
+  2, 4, 5, 4, 2, 4, 2, 0, 5, 0, 5, 3,
+  5, 4, 5, 1, 0, 3, 5, 4, 1, 3, 1, 0,
+  5, 3, 5, 0, 2, 0, 1, 4, 3, 0, 1, 3,
+  0, 4, 0, 5, 2, 3, 2, 0, 1, 3, 2, 4,
+  3, 4, 0, 4, 0, 2, 4, 3, 2, 1, 5, 2,
+  5, 2, 3, 5, 2, 5, 1, 3, 2, 1, 2, 0,
+  4, 3, 5, 4, 2, 1, 4, 1, 0, 1, 0, 5,
+  2, 1, 2, 4, 5, 2, 5, 0, 3, 1, 2, 3,
+  2, 3, 0, 5, 0, 2, 1, 0, 2, 4, 0, 2,
+  1, 4, 2, 0, 1, 2, 0, 4, 3, 1, 4, 5,
+  4, 0, 3, 2, 0, 4, 1, 4, 0, 4, 1, 3,
+  5, 1, 2, 0, 2, 3, 2, 0, 2, 4, 1, 0,
+  2, 4, 5, 1, 5, 4, 3, 1, 3, 4, 5, 4,
+  1, 5, 1, 5, 0, 2, 0, 4, 2, 5, 4, 3,
+  2, 0, 2, 4, 5, 1, 5, 0, 2, 5, 1, 3,
+  5, 3, 4, 5, 3, 1, 5, 1, 5, 0, 5, 0,
+  1, 0, 2, 0, 5, 1, 5, 2, 4, 5, 3, 4,
+  0, 5, 3, 0, 2, 5, 3, 0, 3, 0, 2, 0,
+  1, 2, 4, 2, 3, 5, 1, 4, 2, 0, 1, 0,
+  2, 4, 1, 4, 5, 2, 3, 5, 4, 5, 4, 5,
+  3, 4, 0, 5, 0, 5, 2, 1, 4, 2, 5, 0,
+  5, 0, 3, 0, 3, 0, 4, 1, 5, 0, 4, 5,
+  2, 0, 3, 5, 3, 5, 4, 3, 5, 4, 3, 4,
+  3, 4, 5, 3, 4, 1, 3, 5, 1, 2, 1, 5,
+  1, 0, 4, 3, 4, 3, 0, 2, 1, 2, 5, 2,
+  0, 3, 1, 5, 3, 5, 3, 0, 5, 2, 4, 0,
+  1, 2, 0, 1, 0, 4, 3, 2, 3, 1, 5, 4,
+  0, 3, 5, 1, 5, 3, 1, 5, 3, 1, 3, 0,
+  3, 0, 4, 0, 5, 3, 1, 2, 0, 2, 0, 3,
+  5, 1, 2, 0, 3, 1, 0, 3, 5, 1, 5, 3,
+  2, 0, 4, 2, 3, 2, 5, 3, 5, 2, 4, 5,
+  2, 4, 0, 3, 0, 2, 5, 2, 4, 0, 1, 5,
+  4, 2, 0, 2, 0, 3, 2, 1, 2, 1, 4, 5,
+  2, 4, 2, 1, 2, 5, 2, 4, 0, 5, 1, 5,
+  3, 2, 3, 4, 3, 1, 0, 2, 3, 0, 1, 2,
+  0, 2, 4, 5, 0, 2, 5, 1, 0, 2, 1, 2,
+  3, 5, 0, 2, 4, 2, 5, 4, 2, 1, 2, 5,
+  3, 4, 3, 4, 1, 2, 0, 2, 0, 1, 2, 5,
+  1, 2, 4, 1, 0, 3, 4, 5, 1, 5, 1, 0,
+  2, 5, 2, 5, 3, 1, 3, 2, 1, 0, 3, 0,
+  5, 2, 1, 2, 1, 0, 4, 3, 5, 1, 2, 4,
+  0, 1, 3, 2, 0, 4, 0, 4
+]
+var tournamentCounter = 0;
 
 // users.getHighScore(function(data){
 //   console.log(data)
@@ -229,14 +275,15 @@ events.addListener("save-user", function (message) {
   createUser(message);
 })
 
-events.addListener("user-data",function(message){
+events.addListener("user-data", function (message) {
   activeUser = message;
-  console.log("setting active user",activeUser);
+  console.log("setting active user", activeUser);
 })
 
 events.addListener("game-reset", function (gameTypeMessage) {
   console.log("resetting game");
   gameScore = 0;
+  tournamentCounter = 0;
   gameTimer.stop();
   gameOver = false;
   timerSeconds = process.env.GAME_LENGTH;
@@ -248,7 +295,7 @@ events.addListener("game-reset", function (gameTypeMessage) {
     gameMode = 0;
     gameType = 9;
   }
-  console.log("GAME message: ", gameTypeMessage, "Game Type",gameType,"GAME MODE: ",gameMode);
+  console.log("GAME message: ", gameTypeMessage, "Game Type", gameType, "GAME MODE: ", gameMode);
   generateGameColors();
   sendUDPMessage();
   if (isRecording) {
@@ -280,12 +327,12 @@ function sendUDPMessage(message, port) {
     });
     //console.log(Date.now() + " Sending: " + responseJson + "to port - " + "4432");
     //const response = "Hellow there!";
-    mqttclient.publish("quikick/target", responseJson,{qos:2});
+    mqttclient.publish("quikick/target", responseJson, { qos: 2 });
     const scoreJson = JSON.stringify({
       lType: 2,
       score: gameScore
     });
-    mqttclient.publish("quikick/score", scoreJson,{qos:0});
+    mqttclient.publish("quikick/score", scoreJson, { qos: 0 });
     //udpSocket.setBroadcast(true);
     //udpSocket.send(responseJson, 0, responseJson.length, "4432", ipRange);
   } catch (e) {
@@ -348,16 +395,7 @@ function generateGameColors() {
   }
 }
 
-udpSocket.on("listening", function () {
-  const address = udpSocket.address();
-  console.log(
-    "UDP udpSocket listening on " + address.address + ":" + address.port
-  );
-  udpSocket.setBroadcast(true);
-  // setInterval(() => {
-  //   udpSocket.send(message, 0, message.length, 1234, "255.255.255.255");
-  // }, 5000);
-});
+
 mqttclient.on("message", (topic, message) => {
   // message is Buffer
   //console.log("Received", message.toString());
@@ -416,6 +454,11 @@ mqttclient.on("message", (topic, message) => {
           }
           nextTarget = targetCounter;
           break;
+        case 3:
+          nextTarget = tournamentTarget[tournamentCounter];
+          //console.log("Next Target:",nextTarget);
+          tournamentCounter++
+          break;
       }
     } else if (receivedJson.goal === 1 && gameOver) {
       events.emit("timer-tick", 0);
@@ -464,142 +507,7 @@ mqttclient.on("message", (topic, message) => {
     // expected output: SyntaxError: Unexpected token o in JSON at position 1
   }
   //client.end();
-});
-udpSocket.on("message", function (message, remote) {
-  console.log(
-    Date.now() + " SERVER RECEIVED:",
-    remote.address + ":" + remote.port + " - " + message
-  );
-  try {
-    var receivedJson = JSON.parse(message.toString());
-    //console.log(receivedJson.count);
-    // expected output: 42
-    // console.log(receivedJson.result);
-    // expected output: true
-    if (receivedJson.goal === 1 && !gameOver) {
-      reactionTimes.push(receivedJson.reactTime);
-      if (!gameTimer.isRunning()) {
-        gameTimer.start();
-      }
-      if (!gameOver) {
-        gameScore++;
-        console.log("GameScore: ", gameScore);
-        console.log("GAME TYPE: ", gameType,"GAME MODE: ",gameMode);
-        if (gameType == 9) {
-          console.log("Using Game type 9")
-          if (gameMode === 0 && gameScore === numDevices - 1) {
-            targetCounter = numDevices - 1;
-            gameMode = 1;
-            console.log("Game Mode: ", gameMode);
-            console.log("targetCounter: ", targetCounter);
-          }
-          if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
-            gameMode = 2;
-            console.log("Game Mode: ", gameMode);
-            console.log("targetCounter: ", targetCounter);
-          }
-        }
-      }
-      var sharedJson = {};
-      sharedJson.score = gameScore;
-      sharedJson.reactTime = receivedJson.reactTime;
-      events.emit("udpSocket-data", sharedJson);
-      activeTarget = nextTarget;
-      switch (+gameMode) {
-        case 2:
-          generateRandomNext(0, numDevices - 1);
-          break;
-        case 0:
-          targetCounter++;
-          if (targetCounter === numDevices) {
-            targetCounter = 0;
-          }
-          nextTarget = targetCounter;
-          break;
-        case 1:
-          targetCounter--;
-          if (targetCounter < 0) {
-            targetCounter = numDevices - 1;
-          }
-          nextTarget = targetCounter;
-          break;
-      }
-    } else if (receivedJson.goal === 1 && gameOver) {
-      events.emit("timer-tick", 0);
-    } else if (receivedJson.goal === 0 && negativeGoal && !gameOver) {
-      gameScore--;
-      var sharedJson = {};
-      sharedJson.score = gameScore;
-      sharedJson.reactTime = receivedJson.reactTime;
-      events.emit("udpSocket-data", sharedJson);
-    }
-    if (receivedJson.ack === 1) {
-      console.log(Date.now() + " ACK: ", receivedJson.deviceId);
-      //ackCounter++;
-      if (ackTimeout) {
-        //console.log("clearing resend interval");
-        clearInterval(ackTimeout);
-        ackTimeout = null;
-      }
-    } else {
-      if (!gameOver) {
-        sendUDPMessage();
-        if (ackTimeout === null) {
-          //console.log("setting resend interval")
-          ackTimeout = setInterval(function () {
-            // if(ackCounter<2){
-            console.log("Not enough ACKs");
-            sendUDPMessage();
-            // }
-          }, 750);
-        }
-      }
-
-    }
-
-    // const response = JSON.stringify({
-    //   activeId: deviceArray[activeTarget],
-    //   nextId: deviceArray[nextTarget],
-    // });
-    // console.log("Sending: " + response + "to port - " + remote.port);
-    // //const response = "Hellow there!";
-    // udpSocket.setBroadcast(true);
-    // udpSocket.send(response, 0, response.length, remote.port, ipRange);
-  } catch (e) {
-    console.log(e);
-    // expected output: SyntaxError: Unexpected token o in JSON at position 1
-  }
-
-  //var responseJson = {"activeId":13456262,"nextId":87654321};
-});
-// app.on("listening", function () {
-//   // server ready to accept connections here
-//   var io = app.get("socketio");
-//   console.log(io)
-// });
-
-udpSocket.bind("4321");
-udpSocket.on("listening", function () {
-  //sendUDPMessage();
-  console.log("Listeneing");
-  // animateColors(6, function () {
-  //   setTimeout(function () {
-  //     generateGameColors();
-  //     sendUDPMessage();
-  //   }, 1000);
-  // });
-  setTimeout(function () {
-    generateGameColors();
-    sendUDPMessage();
-  }, 1000);
-  // generateGameColors();
-  // sendUDPMessage();
-  // setTimeout(function(){
-  //   clearInterval(animateInterval);
-  // },15000)
-});
-
-//
+})
 
 function gameTick() {
   if (timerSeconds === 0 && !gameOver) {
@@ -612,10 +520,10 @@ function gameTick() {
     const scoreJson = JSON.stringify({
       lType: 0
     });
-    setTimeout(function(){
-      mqttclient.publish("quikick/score", scoreJson,{qos:2});
-    },10000)
-    
+    setTimeout(function () {
+      mqttclient.publish("quikick/score", scoreJson, { qos: 2 });
+    }, 10000)
+
     if (activeUser != null) {
       var gameObj = {}; //{"userID":"24ac00cc-ea4b-4c62-a893-0c0d521eea86","locationID":"1","gameName":"1","score":-2,"duration":90,"device":"1","metadata":{}}
       gameObj.userID = activeUser.UserID;
@@ -623,7 +531,7 @@ function gameTick() {
       gameObj.gameName = numDevices.toString();
       gameObj.duration = process.env.GAME_LENGTH;
       gameObj.device = process.env.BALENA_DEVICE_NAME_AT_INIT;
-      gameObj.metadata = { "reactionTimes": reactionTimes, "gameType":gameType }; //{"data":"test"}
+      gameObj.metadata = { "reactionTimes": reactionTimes, "gameType": gameType }; //{"data":"test"}
       gameObj.score = gameScore * -1;
       console.log(gameObj)
       users.addGame(gameObj, function (data) {
