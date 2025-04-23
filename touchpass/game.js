@@ -138,7 +138,7 @@ var ackCounter = 0;
 var ackTimeout = null;
 var lastMessageTime = 0;
 const tournamentTarget = [
-  0, 1, 2, 3, 4, 5, 0, 5, 4, 3, 2, 1,
+  2, 3, 4, 5, 0, 5, 4, 3, 2, 1,
   2, 4, 5, 4, 2, 4, 2, 0, 5, 0, 5, 3,
   5, 4, 5, 1, 0, 3, 5, 4, 1, 3, 1, 0,
   5, 3, 5, 0, 2, 0, 1, 4, 3, 0, 1, 3,
@@ -379,6 +379,7 @@ function generateGameColors() {
       activeTarget = 0;
       generateRandomNext(0, numDevices - 1);
       break;
+    case 3:
     case 9:
     case 0: // To the RIGHT
       //console.log("SETTING RIGHT COLOR")
