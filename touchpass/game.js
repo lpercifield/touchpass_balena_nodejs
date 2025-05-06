@@ -137,6 +137,7 @@ var gameType = process.env.GAME_TYPE;
 var ackCounter = 0;
 var ackTimeout = null;
 var lastMessageTime = 0;
+const tikitaka = [2, 1, 3, 5, 6, 4];
 const tournamentTarget = [
   2, 3, 4, 5, 0, 5, 4, 3, 2, 1,
   2, 4, 5, 4, 2, 4, 2, 0, 5, 0, 5, 3,
@@ -379,6 +380,7 @@ function generateGameColors() {
       activeTarget = 0;
       generateRandomNext(0, numDevices - 1);
       break;
+    case 4:
     case 3:
     case 9:
     case 0: // To the RIGHT
@@ -459,6 +461,17 @@ mqttclient.on("message", (topic, message) => {
           nextTarget = tournamentTarget[tournamentCounter];
           //console.log("Next Target:",nextTarget);
           tournamentCounter++
+          break;
+        case 4:
+          targetCounter++;
+          break;
+        case 5:
+          nextTarget = tikitaka[tournamentCounter];
+          //console.log("Next Target:",nextTarget);
+          tournamentCounter++
+          if(tournamentCounter>=tikitaka.length){
+            tournamentCounter = 0;
+          }
           break;
       }
     } else if (receivedJson.goal === 1 && gameOver) {
