@@ -111,10 +111,10 @@ app.get('/dashboard', (req, res) => {
     if (allUsersJson == "") {
       console.log("Getting all users");
       users.getAllUsers(function (allUsers) {
-        console.log(allUsers);
+        //console.log(allUsers);
         allUsersJson = allUsers;
         const player = allUsersJson.find(p => p.UserID === playerNumber);
-        console.log(player);
+        //console.log(player);
         res.render('dashboard', { gameStates: gameData, player });
       });
     } else {

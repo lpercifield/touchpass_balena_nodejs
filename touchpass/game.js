@@ -21,7 +21,7 @@ var nfcBuffs = ''
 var activeUser = '{"credits":10,"userID":"10e8b038-3a5b-4541-9093-8e825bef2f35","metadata":{"cardId":"0000000000","team":"Quikick","number":0},"userName":"Quikick User"}';
 var buffsCount = 0
 var keymap = { '04': 'A', '05': 'B', '06': 'C', '07': 'D', '08': 'E', '09': 'F', '0a': 'G', '0b': 'H', '0c': 'I', '0d': 'J', '0e': 'K', '0f': 'L', '10': 'M', '11': 'N', '12': 'O', '13': 'P', '14': 'Q', '15': 'R', '16': 'S', '17': 'T', '18': 'U', '19': 'V', '1a': 'W', '1b': 'X', '1c': 'Y', '1d': 'Z', '1e': '1', '1f': '2', '20': '3', '21': '4', '22': '5', '23': '6', '24': '7', '25': '8', '26': '9', '27': '0', '00': '' }
-
+var animationStartTimer;
 
 try {
   var reader = new HID.HID(0x413d, 0x2107);// PID: 0x2107 VID: 0x413d
@@ -49,12 +49,12 @@ const mqtt = require("mqtt");
 const mqttclient = mqtt.connect("mqtt://localhost");
 
 mqttclient.on("connect", () => {
-  mqttclient.subscribe("quikick/goal", { qos: 2 }, (err) => {
-    if (!err) {
-      console.log("SUCCESS - MQTT Subscribe")
-      //mqttclient.publish("presence", "Hello mqtt");
-    }
-  });
+  // mqttclient.subscribe("quikick/goal", { qos: 2 }, (err) => {
+  //   if (!err) {
+  //     console.log("SUCCESS - MQTT Subscribe")
+  //     //mqttclient.publish("presence", "Hello mqtt");
+  //   }
+  // });
 });
 
 
@@ -73,8 +73,12 @@ mqttclient.on("connect", () => {
 
 //{"activeId":"5880848","nextId":"5880508"}
 //{"deviceId":5867695,"goal":1,"reactTime":0} {"deviceId":5875620,"goal":1,"reactTime":0}
-//sudo ln -sf ./cypress/cyfmac43455-sdio-minimal.bin brcmfmac43455-sdio.bin
-//brcmfmac43455-sdio.bin -> ../cypress/cyfmac43455-sdio.bin
+//https://forums.balena.io/t/how-to-mount-lib-firmware-rw/2949/6
+//mount -o remount, rw /lib/firmware
+//cd /lib/firmware
+//ln -sf ../cypress/cyfmac43455-sdio-minimal.bin brcmfmac43455-sdio.bin
+
+//brcmfmac43455-sdio.bin -> ../cypress/cyfmac43455-sdio.bin -- TO RESET
 
 /*
 https://forums.balena.io/t/how-can-i-configure-tp-link-wifi-adapter/65176/9
@@ -92,6 +96,7 @@ https://docs.balena.io/learn/develop/multicontainer/#labels
 //2016 Girls,2016 Boys,2015 Boys,2014 Boys,2013 Girls,2014 Girls,2013 Boys,2012 Boys,HS Boys Red,HS Boys Black
 //2016 Girls,2016 Boys,2015 Boys,2014 Boys,2013 Girls,2014 Girls,2013 Boys,2012 Boys,HS Boys Red,HS Boys Black
 //Forge Elite Athletic Development //FEADNVadmin
+//LOCATION="FORGE_03_25_2025" - 58 high score
 
 
 const message = "Server?";
@@ -137,7 +142,7 @@ var gameType = process.env.GAME_TYPE;
 var ackCounter = 0;
 var ackTimeout = null;
 var lastMessageTime = 0;
-const tikitaka = [2, 1, 3, 5, 6, 4];
+const tikitaka = [1, 0, 2, 4, 5, 3];
 const tournamentTarget = [
   2, 3, 4, 5, 0, 5, 4, 3, 2, 1,
   2, 4, 5, 4, 2, 4, 2, 0, 5, 0, 5, 3,
@@ -275,6 +280,128 @@ function generateRandomNext(min, max) {
 events.addListener("save-user", function (message) {
   createUser(message);
 })
+events.addListener("target-goal", function (topic,payload) {
+  //createUser(message);
+  console.log("Received",topic,payload.toString());
+   // message is Buffer
+  //console.log("Received", message.toString());
+  console.log("Message Time Diff", Date.now()-lastMessageTime);
+  lastMessageTime = Date.now();
+  try {
+    var receivedJson = JSON.parse(payload.toString());
+    //console.log(receivedJson.count);
+    // expected output: 42
+    // console.log(receivedJson.result);
+    // expected output: true
+    if (receivedJson.goal === 1 && !gameOver) {
+      reactionTimes.push(receivedJson.reactTime);
+      if (!gameTimer.isRunning()) {
+        gameTimer.start();
+      }
+      if (!gameOver) {
+        gameScore++;
+        //console.log("GameScore: ", gameScore);
+        //console.log("GAME TYPE: ", gameType,"GAME MODE: ",gameMode);
+        if (gameType == 9) {
+          //console.log("Using Game type 9")
+          if (gameMode === 0 && gameScore === numDevices - 1) {
+            targetCounter = numDevices - 1;
+            gameMode = 1;
+            console.log("Game Mode: ", gameMode);
+            console.log("targetCounter: ", targetCounter);
+          }
+          if (gameMode === 1 && gameScore === (numDevices * 2) - 1) {
+            gameMode = 2;
+            console.log("Game Mode: ", gameMode);
+            console.log("targetCounter: ", targetCounter);
+          }
+        }
+      }
+      var sharedJson = {};
+      sharedJson.score = gameScore;
+      sharedJson.reactTime = receivedJson.reactTime;
+      events.emit("udpSocket-data", sharedJson);
+      activeTarget = nextTarget;
+      switch (+gameMode) {
+        case 2:
+          generateRandomNext(0, numDevices - 1);
+          break;
+        case 0:
+          targetCounter++;
+          if (targetCounter === numDevices) {
+            targetCounter = 0;
+          }
+          nextTarget = targetCounter;
+          break;
+        case 1:
+          targetCounter--;
+          if (targetCounter < 0) {
+            targetCounter = numDevices - 1;
+          }
+          nextTarget = targetCounter;
+          break;
+        case 3:
+          nextTarget = tournamentTarget[tournamentCounter];
+          //console.log("Next Target:",nextTarget);
+          tournamentCounter++
+          break;
+        case 4:
+          nextTarget = tikitaka[tournamentCounter];
+          //console.log("Next Target:",nextTarget);
+          tournamentCounter++
+          if (tournamentCounter >= tikitaka.length) {
+            tournamentCounter = 0;
+          }
+          break;
+      }
+    } else if (receivedJson.goal === 1 && gameOver) {
+      events.emit("timer-tick", 0);
+    } else if (receivedJson.goal === 0 && negativeGoal && !gameOver) {
+      gameScore--;
+      var sharedJson = {};
+      sharedJson.score = gameScore;
+      sharedJson.reactTime = receivedJson.reactTime;
+      events.emit("udpSocket-data", sharedJson);
+    }
+    if (receivedJson.ack === 1) {
+      console.log(Date.now() + " ACK: ", receivedJson.deviceId);
+      //ackCounter++;
+      if (ackTimeout) {
+        //console.log("clearing resend interval");
+        clearInterval(ackTimeout);
+        ackTimeout = null;
+      }
+    } else {
+      if (!gameOver) {
+        sendUDPMessage();
+        //
+        // if (ackTimeout === null) {
+        //   //console.log("setting resend interval")
+        //   ackTimeout = setInterval(function () {
+        //     // if(ackCounter<2){
+        //     console.log("Not enough ACKs");
+        //     sendUDPMessage();
+        //     // }
+        //   }, 750);
+        // }
+      }
+
+    }
+
+    // const response = JSON.stringify({
+    //   activeId: deviceArray[activeTarget],
+    //   nextId: deviceArray[nextTarget],
+    // });
+    // console.log("Sending: " + response + "to port - " + remote.port);
+    // //const response = "Hellow there!";
+    // udpSocket.setBroadcast(true);
+    // udpSocket.send(response, 0, response.length, remote.port, ipRange);
+  } catch (e) {
+    console.log(e);
+    // expected output: SyntaxError: Unexpected token o in JSON at position 1
+  }
+  //client.end();
+})
 
 events.addListener("user-data", function (message) {
   activeUser = message;
@@ -289,6 +416,7 @@ events.addListener("game-reset", function (gameTypeMessage) {
   gameOver = false;
   timerSeconds = process.env.GAME_LENGTH;
   reactionTimes = [];
+  clearTimeout(animationStartTimer);
   if (gameTypeMessage && gameTypeMessage != 9) {
     gameMode = gameTypeMessage;
     gameType = gameTypeMessage
@@ -380,7 +508,6 @@ function generateGameColors() {
       activeTarget = 0;
       generateRandomNext(0, numDevices - 1);
       break;
-    case 4:
     case 3:
     case 9:
     case 0: // To the RIGHT
@@ -395,14 +522,20 @@ function generateGameColors() {
       nextTarget = numDevices - 1;
       targetCounter = numDevices - 1;
       break;
+    case 4:
+      console.log("SETTING TIKITAKA COLOR")
+      activeTarget = tikitaka[0];
+      nextTarget = tikitaka[1];
+      tournamentCounter = 2;
+      break;
   }
 }
 
 
 mqttclient.on("message", (topic, message) => {
   // message is Buffer
-  //console.log("Received", message.toString());
-  //console.log("Message Time Diff", Date.now()-lastMessageTime);
+  console.log("Received", message.toString());
+  console.log("Message Time Diff", Date.now()-lastMessageTime);
   lastMessageTime = Date.now();
   try {
     var receivedJson = JSON.parse(message.toString());
@@ -463,13 +596,10 @@ mqttclient.on("message", (topic, message) => {
           tournamentCounter++
           break;
         case 4:
-          targetCounter++;
-          break;
-        case 5:
           nextTarget = tikitaka[tournamentCounter];
           //console.log("Next Target:",nextTarget);
           tournamentCounter++
-          if(tournamentCounter>=tikitaka.length){
+          if (tournamentCounter >= tikitaka.length) {
             tournamentCounter = 0;
           }
           break;
@@ -534,8 +664,10 @@ function gameTick() {
     const scoreJson = JSON.stringify({
       lType: 0
     });
-    setTimeout(function () {
+    animationStartTimer = setTimeout(function () {
       mqttclient.publish("quikick/score", scoreJson, { qos: 2 });
+      const ledOn = JSON.stringify({"mType":2,"led":1});
+      mqttclient.publish("quikick/target", ledOn, { qos: 2 });
     }, 10000)
 
     if (activeUser != null) {

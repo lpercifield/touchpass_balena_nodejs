@@ -2,6 +2,9 @@ const aedes = require('aedes')()
 const server = require('net').createServer(aedes.handle)
 const port = 1883
 
+var app = require("./app");
+var events = app.get("event");
+
 server.listen(port, function () {
   console.log('server started and listening on port ', port)
 })
@@ -14,8 +17,9 @@ aedes.on('connectionError', function (client, err) {
 })
 
 aedes.on('publish', function (packet, client) {
-  if (client) {
-    //console.log('message from client', client.id, packet.topic, JSON.parse(packet.payload.toString()))
+  if (packet.topic === "quikick/goal") {
+    console.log('message from client', client.id, packet.topic, JSON.parse(packet.payload.toString()))
+    events.emit("target-goal", packet.topic, packet.payload);
   }
 })
 

@@ -31,7 +31,7 @@ const doUpdate = (ipAddress, file, callback) => {
   });
     pythonProcess.on("close", function (error) {
       console.log(ipAddress,"close code:", error);
-      return callback();
+      return callback(error);
     });
   pythonProcess.on("exit", function (code, sig) {
     console.log(ipAddress,"exit code:", code, " sig:", sig);

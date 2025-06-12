@@ -24,6 +24,7 @@ const ipArray = [
   "10.42.0.220",
   "10.42.0.77"
 ];
+var successArray = [];
 // const ipArray = [
 //     "192.168.86.34",
 //     "192.168.86.35",
@@ -37,8 +38,9 @@ var counter = 0;
 var args = process.argv.slice(2);
 
 function runUpdate(arrayToUse) {
-    arduino.doUpdate(arrayToUse[counter], './arduino/quikick_002_test.ino.bin', function () {
-        console.log("Done: ", arrayToUse[counter]);
+    arduino.doUpdate(arrayToUse[counter], './arduino/quikick_003.ino.bin', function (error) {
+        successArray[counter] = error;
+        console.log("Done: ", arrayToUse[counter], successArray);
         counter++;
         //runUpdate();
         console.log(arrayToUse.length-counter)
