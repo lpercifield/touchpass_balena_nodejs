@@ -7,8 +7,8 @@ FROM balenalib/%%BALENA_ARCH%%-node:20-buster-run
 # for instance if you need git, just uncomment the line below.
 # RUN install_packages git
 
-RUN apt-get update && apt-get install -y ffmpeg
-RUN apt-get install -y python3
+# RUN apt-get update && apt-get install -y ffmpeg
+# RUN apt-get install -y python3
 
 ENV UDEV=on
 

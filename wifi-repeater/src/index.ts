@@ -1,4 +1,4 @@
-import * as blinking from 'blinking';
+//import * as blinking from 'blinking';
 import {
   createAccessPoint,
   connectToWifi,
@@ -14,14 +14,14 @@ const WIFI_SSID = process.env.WIFI_SSID;
 const WIFI_PASSWORD = process.env.WIFI_PASSWORD;
 
 // LED notifications
-const ledFile = '/sys/class/leds/led0/brightness';
-const led = blinking(ledFile);
-const LED_ERROR_PATTERNS = {
-  NO_AP_CAPABLE_DEVICE: 2,
-  NO_SECONDARY_WIRELESS: 3,
-  NO_WIFI_CREDENTIALS: 4,
-  NO_INTERNET: 5
-};
+// const ledFile = '/sys/class/leds/led0/brightness';
+// const led = blinking(ledFile);
+// const LED_ERROR_PATTERNS = {
+//   NO_AP_CAPABLE_DEVICE: 2,
+//   NO_SECONDARY_WIRELESS: 3,
+//   NO_WIFI_CREDENTIALS: 4,
+//   NO_INTERNET: 5
+// };
 
 (async () => {
   console.log('-- WiFi repeater: starting...');
@@ -43,7 +43,7 @@ const LED_ERROR_PATTERNS = {
   // Create Access Point, required for both modes of operation
   if (!accessPoint) {
     console.log(`Could not find a wireless device with AP capabilities. Exiting...`);
-    led.pattern.start({ blinks: LED_ERROR_PATTERNS.NO_AP_CAPABLE_DEVICE, pause: 1000 });
+    //led.pattern.start({ blinks: LED_ERROR_PATTERNS.NO_AP_CAPABLE_DEVICE, pause: 1000 });
     return;
   }
 
@@ -56,13 +56,13 @@ const LED_ERROR_PATTERNS = {
 
     if (!bridge) {
       console.log(`Could not find a secondary wireless device. Exiting...`);
-      led.pattern.start({ blinks: LED_ERROR_PATTERNS.NO_SECONDARY_WIRELESS, pause: 1000 });
+      //led.pattern.start({ blinks: LED_ERROR_PATTERNS.NO_SECONDARY_WIRELESS, pause: 1000 });
       return;
     }
 
     if (!WIFI_SSID || !WIFI_PASSWORD) {
       console.log(`WiFi credentials for secondary wireless device not provided. Exiting...`);
-      led.pattern.start({ blinks: LED_ERROR_PATTERNS.NO_WIFI_CREDENTIALS, pause: 1000 });
+      //led.pattern.start({ blinks: LED_ERROR_PATTERNS.NO_WIFI_CREDENTIALS, pause: 1000 });
       return;
     }
 
@@ -74,7 +74,7 @@ const LED_ERROR_PATTERNS = {
     let nmConnected = await checkNMConnectivity();
     if (!nmConnected) {
       console.log(`Warning: Could not detect internet access. Bad WiFi credentials provided or WiFi network has no internet access...`);
-      led.pattern.start({ blinks: LED_ERROR_PATTERNS.NO_INTERNET, pause: 1000 });
+      //led.pattern.start({ blinks: LED_ERROR_PATTERNS.NO_INTERNET, pause: 1000 });
       return;
     }
 

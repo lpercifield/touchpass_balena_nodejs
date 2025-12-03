@@ -1,0 +1,49 @@
+FROM debian:bookworm-20250317
+
+WORKDIR /usr/src/app
+
+ENV UDEV=on
+
+RUN apt update && apt install -y cmake device-tree-compiler libfdt-dev wget unzip
+
+RUN apt-get update && \
+    apt-get install -y \
+    apt-utils \
+    make \
+    bison \
+    build-essential \
+    flex \
+    libelf-dev \
+    libssl-dev \
+    libncurses5 \ 
+    pciutils \
+    bc \
+    wget \ 
+    git \
+    usbutils \
+    libqmi-utils \
+    kmod \
+    xinput \
+    dbus \
+    wireless-tools \
+    network-manager \
+    iproute2
+
+RUN wget https://github.com/raspberrypi/utils/archive/refs/heads/master.zip && \
+    unzip master.zip && \
+    cd utils-master/pinctrl && \
+    cmake . && \
+    make && \
+    make install && \
+    cd .. && cd ..
+
+COPY . .
+RUN chmod +x gpio.sh
+
+RUN cd src && \
+    make && \
+    cd ..
+
+#CMD /usr/local/bin/shell.sh ; sleep infinity
+
+CMD ["bash", "-c", "./gpio.sh ; sleep infinity"]
