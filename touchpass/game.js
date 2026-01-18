@@ -14,7 +14,7 @@ const { log } = require("console");
 //const ipRange = "10.42.0.255";
 const ipRange = process.env.BROADCAST_ADDRESS;
 var HID = require('node-hid');
-var devices = HID.devices();
+//var devices = HID.devices();
 var gopro = require("./gopro.js");
 
 var nfcBuffs = ''

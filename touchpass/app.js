@@ -30,14 +30,33 @@ const balena = getSdk({
 });
 var publicURL;
 
-(async () => {
-  await balena.auth.loginWithToken(process.env.BALENA_API_KEY);
-  await balena.models.device.getDeviceUrl(process.env.BALENA_DEVICE_UUID).then(function (url) {
-    //console.log(url);
-    publicURL = url+"/select-player";
-  });
-})();
+const fetchURL = async () => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 1000); // Set a 1 second timeout
+  const signal = controller.signal;
+  try {
+    // Pass the signal to the task, or rely on AbortSignal.timeout in compatible operations
+    //const result = await longRunningTask(controller.signal);
+    await balena.auth.loginWithToken(process.env.BALENA_API_KEY,{ signal });
+    await balena.models.device.getDeviceUrl(process.env.BALENA_DEVICE_UUID,{ signal }).then(function (url) {
+      console.log("public URL",url);
+      clearTimeout(timeoutId); // Clear timeout if task finishes first
+      publicURL = url;
+      return url;
+    });
+  } catch (error) {
+    clearTimeout(timeoutId); // Clear timeout on error too
+    if (error.name === 'AbortError') {
+      console.error('Balena URL Task cancelled due to timeout')
+      return null;
+    } else {
+      console.error('Balena URL Task failed:', error.message)
+      return null;
+    }
+  }
 
+};
+fetchURL();
 
 
 
@@ -58,6 +77,7 @@ app.use("/users", usersRouter);
 app.use("/leaderboard", leaderboardRouter);
 
 var fs = require('fs');
+const { log } = require('console');
 var allUsersJson = "";
 //var allUsers = JSON.parse(fs.readFileSync('allusersupdated.json', 'utf8'));
 

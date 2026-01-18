@@ -18,6 +18,10 @@
       padding: 20px;
     }
 
+    body::-webkit-scrollbar {
+      display: none;
+    }
+
     .scoreboard {
       background-color: #000000;
       /* Slightly darker blue for the scoreboard */
@@ -25,8 +29,12 @@
       padding: 20px;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
       margin: auto;
-      height: 100vh;
+      height: 94vh;
       /* max-width: 600px; */
+    }
+
+    .scoreboard::-webkit-scrollbar {
+      display: none;
     }
 
     .team {
@@ -292,8 +300,8 @@
 
   <h1>SSE: <span id="state"></span></h1>
   <h3>Data: <span id="data"></span></h3>
-  <button onclick="openFullscreen();">Open Fullscreen</button>
-  <button onclick="closeFullscreen();">Close Fullscreen</button>
+  <button onclick="window.location.reload();">Reload Scoreboard</button>
+  <!-- <button onclick="closeFullscreen();">Close Fullscreen</button> -->
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="/js/jquery.min.js"></script>
@@ -371,7 +379,8 @@
       document.getElementById("qrcode").style.display = "block";
       qrcode.makeCode(url);
     }
-    function clearQR(){
+
+    function clearQR() {
       document.getElementById("qrcode").style.display = "none";
     }
 
@@ -416,12 +425,16 @@
         selectElement.remove(i);
       }
     }
+    var gotURL = '<%= publicURL %>'
+    
+    if(gotURL){
+      console.log("url",gotURL);
+      makeCode(gotURL);
+    }else{
+      console.log("No URL");
+    }
 
 
-    const players = <%- JSON.stringify(publicURL) %>;
-    makeCode(players);
-
-    // connection
     function socketConnect() {
       document.getElementById("state").innerHTML = "Socket Connected";
       document.getElementById("newGame").style.background = '#00ff00'
