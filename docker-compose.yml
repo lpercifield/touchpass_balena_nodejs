@@ -23,6 +23,8 @@ services:
        io.balena.features.firmware: '1' 
     volumes:
       - 'touchpass:/data'
+    environment:
+      - 'DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket'
     
   # pinctl:
   #   build: ./pinctl
@@ -53,6 +55,8 @@ services:
 
   # balena-node-red:
   #   image: bh.cr/balenalabs/balena-node-red
+  
+      #entrypoint: ["sh", "-c", "echo 'starting in 25' && sleep 25 && /usr/src/app/start.sh"]
 
   browser:
     image: bh.cr/balenalabs/browser-aarch64 # where <arch> is one of aarch64, arm32 or amd64
@@ -66,6 +70,7 @@ services:
         - '35173' # Chromium debugging port (optional)
     volumes:
       - 'touchpass:/data' # Only required if using PERSISTENT flag (see below)
-    entrypoint: ["sh", "-c", "echo 'starting in 25' && sleep 25 && /usr/src/app/start.sh"]
+    entrypoint: ["sh", "-c", "echo 'starting in 1' && sleep 1 && /usr/src/app/start.sh"]
+
 
       

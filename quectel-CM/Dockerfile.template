@@ -27,6 +27,7 @@ RUN apt-get update && \
     dbus \
     wireless-tools \
     network-manager \
+    modemmanager \
     iproute2
 
 RUN wget https://github.com/raspberrypi/utils/archive/refs/heads/master.zip && \

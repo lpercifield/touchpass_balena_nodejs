@@ -52,13 +52,66 @@ if [ "x$RELAY" != "x" ]; then
         chmod a+w /sys/class/gpio/gpio$RELAY/value
         ln -sf /sys/class/gpio/gpio$RELAY/value /dev/relay
 fi
+# echo "waiting for modem 20"
+sleep 10
+echo "checking modem"
+# Define APN details
+APN="h2g2"
+# Optional: USERNAME="user"
+# Optional: PASSWORD="password"
+IP_TYPE="ipv4v6" # Or ipv4, ipv6 as required by your carrier
 
-#!/usr/bin/env bash
+# Find the modem index
+MODEM_INDEX=$(mmcli -L | grep -oP 'Modem/\K\d+')
 
-su - -c "mkdir -p /mnt/nvme" root
-device=$(blkid | grep "LABEL=\"nvme\"" | cut -d : -f 1)
-echo "Mounting device = ${device}"
-su - -c "mount -t ext4 -o rw ${device} /mnt/nvme" root
+COUNTER=0
+
+while [[ -z "$MODEM_INDEX" && "$COUNTER" -lt 7 ]]; do
+    echo "No modem found. retry..."
+	sleep 10
+    MODEM_INDEX=$(mmcli -L | grep -oP 'Modem/\K\d+')
+	((COUNTER++))
+done
+
+if [ -z "$MODEM_INDEX" ]; then
+	echo "No modem found. exiting"
+	exit 1
+fi
+
+echo "Found modem with index: $MODEM_INDEX"
+
+# Construct connection string
+CONNECT_CMD="apn=$APN,ip-type=$IP_TYPE"
+# Optional: Add user and password if needed
+# CONNECT_CMD="$CONNECT_CMD,user=$USERNAME,password=$PASSWORD"
+
+echo "Connecting to APN: $APN"
+
+# Execute the simple connect command
+mmcli -m "$MODEM_INDEX" --simple-connect="$CONNECT_CMD"
+
+if [ $? -eq 0 ]; then
+    echo "Connection successful."
+	nmcli connection show "ModemConn" > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+    	echo "Connection 'ModemConn' exists."
+		nmcli con up "ModemConn"
+	else
+    	echo "Connection 'ModemConn' does not exist."
+		nmcli con add type gsm ifname cdc-wdm0 con-name "ModemConn" apn "h2g2"
+		nmcli con up "ModemConn"
+	fi
+    # You can add further steps here, like checking IP address or running a ping test
+else
+    echo "Connection failed. Check logs in /var/log/syslog for details."
+fi
+
+# #!/usr/bin/env bash
+
+# su - -c "mkdir -p /mnt/nvme" root
+# device=$(blkid | grep "LABEL=\"nvme\"" | cut -d : -f 1)
+# echo "Mounting device = ${device}"
+# su - -c "mount -t ext4 -o rw ${device} /mnt/nvme" root
 
 # May want to call the parent image entrypoint instead
 # exec docker-entrypoint.sh "$@"
